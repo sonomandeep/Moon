@@ -1,7 +1,7 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import morgan from 'morgan';
-import logger from './config/logger.js';
+const express = require('express');
+const dotenv = require('dotenv');
+const morgan = require('morgan');
+const logger = require('./config/logger.js');
 
 dotenv.config();
 
