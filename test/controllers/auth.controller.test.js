@@ -40,7 +40,11 @@ describe('Auth controller', () => {
 
       const res = { json: (data) => data };
 
-      const user = new User({ ...req.body, email: 'testuser@test.com' });
+      const user = new User({
+        username: 'testuser',
+        password: 'password',
+        email: 'testuser@test.com',
+      });
       try {
         await user.save();
       } catch (error) {
@@ -56,6 +60,7 @@ describe('Auth controller', () => {
           expect(result.user.email).to.be.equal('testuser@test.com');
         })
         .catch((err) => {
+          console.log('ERRORE');
           throw err;
         })
         .finally(() => {
