@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const winston = require('winston');
 
 const logger = winston.createLogger({
