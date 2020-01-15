@@ -9,4 +9,6 @@ Router.get('/:id', isAuth, usersController.getUser);
 Router.put('/:id', isAuth, isAuthorized, usersController.updateUser);
 Router.delete('/:id', isAuth, isAuthorized, usersController.deleteUser);
 
+Router.post('/follow', isAuth, usersController.followUser);
+
 module.exports = Router;

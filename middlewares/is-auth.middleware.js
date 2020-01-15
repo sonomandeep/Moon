@@ -1,5 +1,6 @@
 const authService = require('../services/auth.service');
 const User = require('../models/user.model');
+const logger = require('../config/logger');
 
 module.exports = async (req, res, next) => {
   try {
@@ -20,7 +21,10 @@ module.exports = async (req, res, next) => {
       throw err;
     }
 
-    const user = await User.findOne({ _id: decoded.id, jwtToken: token });
+    const user = await User.findOne({
+      _id: decoded.id,
+      jwtToken: token.replace('Bearer ', ''),
+    });
 
     if (!user) {
       const error = new Error('Unauthorized');
@@ -31,6 +35,7 @@ module.exports = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    logger.log('error', error);
     next(error);
     throw error;
   }

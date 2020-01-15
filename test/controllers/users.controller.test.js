@@ -271,4 +271,20 @@ describe('Users controller', () => {
         });
     });
   });
+
+  describe('Follow user', () => {
+    it('', () => {
+      const req = { senderId: 1, recipientId: 2 };
+      const res = {};
+      const next = () => {};
+
+      return usersController
+        .followUser(req, res, next)
+        .then(() => {})
+        .catch((err) => {
+          throw err;
+        })
+        .finally();
+    });
+  });
 });

@@ -28,6 +28,8 @@ const userSchema = mongoose.Schema({
     type: String,
     trim: true,
   },
+  followers: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
+  followed: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
 });
 
 module.exports = mongoose.model('User', userSchema);
