@@ -60,16 +60,12 @@ describe('Is auth middleware', () => {
   });
 
   it('should not find a user and fail', () => {
-    const factory = {
-      next: () => {},
-    };
-    const stub = sinon.stub(factory, 'next');
     sinon.stub(authService, 'verifyToken').returns(true);
     sinon.stub(User, 'findOne').returns(false);
 
     const req = { get: () => 'Bearer xyz' };
 
-    return isAuth(req, {}, factory.next)
+    return isAuth(req, {}, () => {})
       .then(() => {
         throw new Error('This sould fail');
       })
