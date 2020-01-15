@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha --recursive",
+    "test": "nyc mocha --recursive --timeout 60s",
     "start": "nodemon app.js"
   },
   "repository": {

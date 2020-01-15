@@ -21,7 +21,7 @@ describe('Handle validation middleware', () => {
     }
   });
 
-  it('should throw validation error', () => {
+  it('should handle validation successfully', () => {
     const factory = {
       next: () => {},
     };

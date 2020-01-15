@@ -7,7 +7,7 @@ const logger = require('../config/logger');
 exports.register = async (req, res, next) => {
   const { username, password, email } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 12);
+  const hashedPassword = await authService.hashPassword(password);
   const user = new User({ username, password: hashedPassword, email });
 
   const savedUser = await user.save();
