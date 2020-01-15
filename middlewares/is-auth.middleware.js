@@ -13,7 +13,7 @@ module.exports = async (req, res, next) => {
     let decoded;
 
     try {
-      decoded = authService.verifyToken(token.replace('Bearer '));
+      decoded = authService.verifyToken(token.replace('Bearer ', ''));
     } catch (error) {
       const err = new Error('You must pass a valid token');
       err.statusCode = 401;
