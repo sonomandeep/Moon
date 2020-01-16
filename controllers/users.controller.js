@@ -103,12 +103,8 @@ exports.deleteUser = async (req, res, next) => {
 };
 
 exports.followUser = async (req, res, next) => {
-  // Ricevo l'id del mandante e del ricevente
-  // Aggiungo il ricevente ai seguiti del mandante
-  // Aggiungo ai seguaci del ricevente l'id del mandante
-
   try {
-    const { userId, recipientId } = req.body;
+    const { recipientId } = req.body;
 
     const recipient = await User.findById(recipientId);
     if (!recipient) {
@@ -132,3 +128,5 @@ exports.followUser = async (req, res, next) => {
     throw error;
   }
 };
+
+exports.unfollowUser = async (req, res, next) => {};

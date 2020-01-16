@@ -273,18 +273,74 @@ describe('Users controller', () => {
   });
 
   describe('Follow user', () => {
-    it('', () => {
-      const req = { senderId: 1, recipientId: 2 };
-      const res = {};
+    it('should success with passing the right data', () => {
+      const req = { user: { _id: 1 }, body: { recipientId: 2 } };
+      const res = {
+        status: (code) => {
+          this.code = code;
+        },
+        send: () => {
+          return this.code;
+        },
+      };
       const next = () => {};
+
+      const findByIdStub = sinon.stub(User, 'findById');
+      findByIdStub
+        .withArgs(1)
+        .returns({ _id: 1, followed: [], save: () => true });
+      findByIdStub
+        .withArgs(2)
+        .returns({ _id: 1, followers: [], save: () => true });
 
       return usersController
         .followUser(req, res, next)
-        .then(() => {})
+        .then((result) => {
+          expect(findByIdStub.callCount).to.be.equal(2);
+          expect(findByIdStub.calledWith(1)).to.be.equal(true);
+          expect(findByIdStub.calledWith(2)).to.be.equal(true);
+          expect(result).to.be.equal(204);
+        })
         .catch((err) => {
           throw err;
         })
-        .finally();
+        .finally(() => {
+          User.findById.restore();
+        });
+    });
+
+    it('should not find the recipient user', () => {
+      const req = { user: { _id: 1 }, body: { recipientId: 2 } };
+      const res = {
+        status: (code) => {
+          this.code = code;
+        },
+        send: () => {
+          return this.code;
+        },
+      };
+      const next = () => {};
+
+      const findByIdStub = sinon.stub(User, 'findById');
+      findByIdStub
+        .withArgs(1)
+        .returns({ _id: 1, followed: [], save: () => true });
+      findByIdStub.withArgs(2).returns(false);
+
+      return usersController
+        .followUser(req, res, next)
+        .then(() => {
+          throw new Error('It should fail');
+        })
+        .catch((err) => {
+          expect(err.message).to.be.equal('Not found');
+          expect(err.statusCode).to.be.equal(404);
+        })
+        .finally(() => {
+          User.findById.restore();
+        });
     });
   });
+
+  describe('Unfollow user', () => {});
 });
