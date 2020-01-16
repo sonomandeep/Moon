@@ -129,4 +129,33 @@ exports.followUser = async (req, res, next) => {
   }
 };
 
-exports.unfollowUser = async (req, res, next) => {};
+exports.unfollowUser = async (req, res, next) => {
+  try {
+    const { recipientId } = req.body;
+
+    const recipient = await User.findById(recipientId);
+    if (!recipient) {
+      const error = new Error('Not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    recipient.followers = recipient.followers.filter(
+      (element) => element._id.toString() !== req.user._id.toString(),
+    );
+    await recipient.save();
+
+    const sender = await User.findById(req.user._id);
+    sender.followed = sender.followed.filter(
+      (element) => element._id.toString() !== recipientId.toString(),
+    );
+    await sender.save();
+
+    res.status(204);
+    return res.send();
+  } catch (error) {
+    logger.log('error', error);
+    next(error);
+    throw error;
+  }
+};
