@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-import * as authService from '../services/auth.service';
+import authService from '../services/auth.service';
 import User from '../models/user.model';
 import logger from '../config/logger';
 

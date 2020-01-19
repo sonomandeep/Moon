@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 
 import User from '../models/user.model';
-import * as authService from '../services/auth.service';
+import authService from '../services/auth.service';
 import logger from '../config/logger';
 
 export const register = async (

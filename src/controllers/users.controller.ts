@@ -1,187 +1,193 @@
 import { Request, Response, NextFunction } from 'express';
 
 import User, { IUser } from '../models/user.model';
-import * as authService from '../services/auth.service';
+import authService from '../services/auth.service';
 import logger from '../config/logger';
 
-export const getUsers = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const users = await User.find()
-      .select('_id username email followers followed')
-      .populate('followers', '_id username email')
-      .populate('followed', '_id username email');
+export default class UsersController {
+  constructor() {}
 
-    return res.json(users);
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
-  }
-};
+  public getUsers(req: Request, res: Response, next: NextFunction) {}
+}
 
-export const getUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      const error = new Error('Bad request');
-      (error as any).statusCode = 400;
-      throw error;
-    }
+// export const getUsers = async (
+//   _req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const users = await User.find()
+//       .select('_id username email followers followed')
+//       .populate('followers', '_id username email')
+//       .populate('followed', '_id username email');
 
-    const user = await User.findOne({ _id: id });
-    if (!user) {
-      const error = new Error('Not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
+//     return res.json(users);
+//   } catch (error) {
+//     logger.log('error', error);
+//     next(error);
+//     throw error;
+//   }
+// };
 
-    return res.json(user);
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
-  }
-};
+// export const getUser = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const id = req.params.id;
+//     if (!id) {
+//       const error = new Error('Bad request');
+//       (error as any).statusCode = 400;
+//       throw error;
+//     }
 
-export const updateUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      const error = new Error('Bad request');
-      (error as any).statusCode = 400;
-      throw error;
-    }
+//     const user = await User.findOne({ _id: id });
+//     if (!user) {
+//       const error = new Error('Not found');
+//       (error as any).statusCode = 404;
+//       throw error;
+//     }
 
-    const updateArray = Object.keys(req.body);
-    let update = {};
+//     return res.json(user);
+//   } catch (error) {
+//     logger.log('error', error);
+//     next(error);
+//     throw error;
+//   }
+// };
 
-    updateArray.forEach((element) => {
-      if (element === 'password') {
-        update = {
-          ...update,
-          [element]: authService.hashPassword(req.body[element]),
-        };
-      } else {
-        update = { ...update, [element]: req.body[element] };
-      }
-    });
+// export const updateUser = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const id = req.params.id;
+//     if (!id) {
+//       const error = new Error('Bad request');
+//       (error as any).statusCode = 400;
+//       throw error;
+//     }
 
-    const updated = await User.findOneAndUpdate({ _id: id }, update, {
-      new: true,
-    });
+//     const updateArray = Object.keys(req.body);
+//     let update = {};
 
-    return res.json(updated);
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
-  }
-};
+//     updateArray.forEach((element) => {
+//       if (element === 'password') {
+//         update = {
+//           ...update,
+//           [element]: authService.hashPassword(req.body[element]),
+//         };
+//       } else {
+//         update = { ...update, [element]: req.body[element] };
+//       }
+//     });
 
-export const deleteUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      const error = new Error('Bad request');
-      (error as any).statusCode = 400;
-      throw error;
-    }
+//     const updated = await User.findOneAndUpdate({ _id: id }, update, {
+//       new: true,
+//     });
 
-    const deleted = await User.findByIdAndDelete(id);
+//     return res.json(updated);
+//   } catch (error) {
+//     logger.log('error', error);
+//     next(error);
+//     throw error;
+//   }
+// };
 
-    if (!deleted) {
-      const error = new Error('Not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
+// export const deleteUser = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const id = req.params.id;
+//     if (!id) {
+//       const error = new Error('Bad request');
+//       (error as any).statusCode = 400;
+//       throw error;
+//     }
 
-    res.status(204);
-    return res.send();
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
-  }
-};
+//     const deleted = await User.findByIdAndDelete(id);
 
-export const followUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { recipientId } = req.body;
+//     if (!deleted) {
+//       const error = new Error('Not found');
+//       (error as any).statusCode = 404;
+//       throw error;
+//     }
 
-    const recipient = await User.findById(recipientId);
-    if (!recipient) {
-      const error = new Error('Not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
+//     res.status(204);
+//     return res.send();
+//   } catch (error) {
+//     logger.log('error', error);
+//     next(error);
+//     throw error;
+//   }
+// };
 
-    recipient.followers.push(((req as any).user as IUser)._id);
-    await recipient.save();
+// export const followUser = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const { recipientId } = req.body;
 
-    const sender = await User.findById(((req as any).user as IUser)._id);
-    sender!.followed.push(recipientId);
-    await sender!.save();
+//     const recipient = await User.findById(recipientId);
+//     if (!recipient) {
+//       const error = new Error('Not found');
+//       (error as any).statusCode = 404;
+//       throw error;
+//     }
 
-    res.status(204);
-    return res.send();
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
-  }
-};
+//     recipient.followers.push(((req as any).user as IUser)._id);
+//     await recipient.save();
 
-export const unfollowUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { recipientId } = req.body;
+//     const sender = await User.findById(((req as any).user as IUser)._id);
+//     sender!.followed.push(recipientId);
+//     await sender!.save();
 
-    const recipient = await User.findById(recipientId);
-    if (!recipient) {
-      const error = new Error('Not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
+//     res.status(204);
+//     return res.send();
+//   } catch (error) {
+//     logger.log('error', error);
+//     next(error);
+//     throw error;
+//   }
+// };
 
-    recipient.followers = recipient.followers.filter(
-      (element) => element.toString() !== (req as any).user._id.toString(),
-    );
-    await recipient.save();
+// export const unfollowUser = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const { recipientId } = req.body;
 
-    const sender = await User.findById((req as any).user._id);
-    sender!.followed = sender!.followed.filter(
-      (element) => element.toString() !== recipientId.toString(),
-    );
-    await sender!.save();
+//     const recipient = await User.findById(recipientId);
+//     if (!recipient) {
+//       const error = new Error('Not found');
+//       (error as any).statusCode = 404;
+//       throw error;
+//     }
 
-    res.status(204);
-    return res.send();
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
-  }
-};
+//     recipient.followers = recipient.followers.filter(
+//       (element) => element.toString() !== (req as any).user._id.toString(),
+//     );
+//     await recipient.save();
+
+//     const sender = await User.findById((req as any).user._id);
+//     sender!.followed = sender!.followed.filter(
+//       (element) => element.toString() !== recipientId.toString(),
+//     );
+//     await sender!.save();
+
+//     res.status(204);
+//     return res.send();
+//   } catch (error) {
+//     logger.log('error', error);
+//     next(error);
+//     throw error;
+//   }
+// }
