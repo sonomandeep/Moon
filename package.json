@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha --recursive --timeout 60s",
+    "test": "nyc mocha --recursive --timeout 60s --require ts-node/register test/**/*.ts",
     "dev": "tsc -w",
     "start": "nodemon dist/app.js"
   },
@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Mandeep2001/Moon#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "config": "^3.2.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-validator": "^6.3.1",
@@ -31,13 +32,16 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
+    "@types/chai": "^4.2.7",
     "@types/dotenv": "^8.2.0",
     "@types/express": "^4.17.2",
     "@types/express-validator": "^3.0.0",
     "@types/jsonwebtoken": "^8.3.6",
+    "@types/mocha": "^5.2.7",
     "@types/mongoose": "^5.5.41",
     "@types/morgan": "^1.7.37",
     "@types/node": "^13.1.8",
+    "@types/sinon": "^7.5.1",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
@@ -45,12 +49,18 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.9.0",
+    "eslint-config-standard": "^14.1.0",
     "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "mocha": "^7.0.0",
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
     "prettier": "^1.19.1",
-    "sinon": "^8.0.4"
+    "sinon": "^8.0.4",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
   }
 }

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-import User, { IUser } from '../models/user.model';
+import User, { UserInterface } from '../models/user.model';
 import authService from '../services/auth.service';
 import logger from '../config/logger';
 

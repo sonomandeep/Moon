@@ -1,25 +1,27 @@
-import User, { IUser } from '../models/user.model';
+import User, { UserInterface } from '../models/user.model';
 import AuthService from '../services/auth.service';
+import UpdateUserDto from '../dtos/user/updateUser.dto';
 
-interface IUserService {
-  getUsers(): Promise<IUser[]>;
-  getUserById(id: string): Promise<IUser | null>;
-  updateUser(id: string, user: IUser): Promise<IUser | null>;
+interface UserServiceInterface {
+  getUsers(): Promise<UserInterface[]>;
+  getUserById(id: string): Promise<UserInterface | null>;
+  updateUser(id: string, user: UserInterface): Promise<UserInterface | null>;
   deleteUser(id: string): Promise<boolean>;
 }
 
-export default class UserService implements IUserService {
-  constructor() {}
-
-  public async getUsers(): Promise<IUser[]> {
-    return await User.find();
+class UserService implements UserServiceInterface {
+  public async getUsers(): Promise<UserInterface[]> {
+    return User.find();
   }
 
-  public async getUserById(id: string): Promise<IUser | null> {
-    return await User.findById(id);
+  public async getUserById(id: string): Promise<UserInterface | null> {
+    return User.findById(id);
   }
 
-  public async updateUser(id: string, user: IUser): Promise<IUser | null> {
+  public async updateUser(
+    id: string,
+    user: UpdateUserDto,
+  ): Promise<UserInterface | null> {
     const updateArray = Object.keys(user);
     let update = {};
     updateArray.forEach((element: string) => {
@@ -39,9 +41,12 @@ export default class UserService implements IUserService {
 
     return updated;
   }
+
   public async deleteUser(id: string): Promise<boolean> {
     const deleted = await User.findByIdAndDelete(id);
 
     return !!deleted;
   }
 }
+
+export default new UserService();

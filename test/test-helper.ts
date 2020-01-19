@@ -1,14 +1,13 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+import mongoose from 'mongoose';
 
-const logger = require('../config/logger');
+import config from '../src/config';
+import logger from '../src/config/logger';
 
-dotenv.config('../');
-logger.transports.forEach((t) => (t.silent = true));
+logger.silent = true;
 
 before((done) => {
   mongoose
-    .connect(process.env.MONGODB_TEST_CONNECTION_STRING, {
+    .connect(config.MONGO_TEST, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useCreateIndex: true,
