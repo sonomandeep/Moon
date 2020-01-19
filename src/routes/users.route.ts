@@ -1,8 +1,10 @@
-const Router = require('express').Router();
+import express from 'express';
 
-const usersController = require('../controllers/users.controller');
-const isAuth = require('../middlewares/is-auth.middleware');
-const isAuthorized = require('../middlewares/is-authorized.middleware');
+const Router = express.Router();
+
+import * as usersController from '../controllers/users.controller';
+import isAuth from '../middlewares/is-auth.middleware';
+import isAuthorized from '../middlewares/is-authorized.middleware';
 
 Router.get('', isAuth, usersController.getUsers);
 Router.get('/:id', isAuth, usersController.getUser);
@@ -11,4 +13,4 @@ Router.delete('/:id', isAuth, isAuthorized, usersController.deleteUser);
 
 Router.post('/follow', isAuth, usersController.followUser);
 
-module.exports = Router;
+export default Router;

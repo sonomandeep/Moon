@@ -1,11 +1,10 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const morgan = require('morgan');
-const mongoose = require('mongoose');
+import express, { Request, Response, NextFunction } from 'express';
+import dotenv from 'dotenv';
+import morgan from 'morgan';
+import mongoose from 'mongoose';
 
-const logger = require('./config/logger.js');
-const routes = require('./routes');
-const authRoute = require('./routes/auth.route');
+import logger from './config/logger.js';
+import routes from './routes';
 
 dotenv.config();
 
@@ -16,14 +15,14 @@ app.use(morgan('dev'));
 
 routes(app);
 
-app.use((error, req, res, next) => {
+app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
   res
     .status(error.statusCode || 500)
     .json(error.data || { message: error.message || 'Internal server error' });
 });
 
 mongoose
-  .connect(process.env.MONGODB_CONNECTION_STRING, {
+  .connect(process.env.MONGODB_CONNECTION_STRING as string, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })

@@ -1,10 +1,15 @@
-const bcrypt = require('bcryptjs');
+import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcryptjs';
 
-const User = require('../models/user.model');
-const authService = require('../services/auth.service');
-const logger = require('../config/logger');
+import User from '../models/user.model';
+import * as authService from '../services/auth.service';
+import logger from '../config/logger';
 
-exports.register = async (req, res, next) => {
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { username, password, email } = req.body;
 
   const hashedPassword = await authService.hashPassword(password);
@@ -19,7 +24,11 @@ exports.register = async (req, res, next) => {
   });
 };
 
-exports.login = async (req, res, next) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { username, password } = req.body;
 
@@ -27,7 +36,7 @@ exports.login = async (req, res, next) => {
 
     if (!user) {
       const error = new Error('User not found');
-      error.statusCode = 404;
+      (error as any).statusCode = 404;
       throw error;
     }
 
@@ -37,7 +46,7 @@ exports.login = async (req, res, next) => {
       const error = new Error(
         'This username/password combination does not exist',
       );
-      error.statusCode = 401;
+      (error as any).statusCode = 401;
       throw error;
     }
 

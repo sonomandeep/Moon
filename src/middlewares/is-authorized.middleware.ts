@@ -1,17 +1,19 @@
-const logger = require('../config/logger');
+import { Request, Response, NextFunction } from 'express';
 
-module.exports = (req, res, next) => {
+import logger from '../config/logger';
+
+export default (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id;
     if (!id) {
       const error = new Error('Bad request');
-      error.statusCode = 400;
+      (error as any).statusCode = 400;
       throw error;
     }
 
-    if (id !== req.user._id) {
+    if (id !== (req as any).user._id) {
       const error = new Error('Unauthorized');
-      error.statusCode = 403;
+      (error as any).statusCode = 403;
       throw error;
     }
 

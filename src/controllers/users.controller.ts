@@ -1,8 +1,14 @@
-const User = require('../models/user.model');
-const authService = require('../services/auth.service');
-const logger = require('../config/logger');
+import { Request, Response, NextFunction } from 'express';
 
-exports.getUsers = async (req, res, next) => {
+import User, { IUser } from '../models/user.model';
+import * as authService from '../services/auth.service';
+import logger from '../config/logger';
+
+export const getUsers = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const users = await User.find()
       .select('_id username email followers followed')
@@ -17,19 +23,23 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
-exports.getUser = async (req, res, next) => {
+export const getUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = req.params.id;
     if (!id) {
       const error = new Error('Bad request');
-      error.statusCode = 400;
+      (error as any).statusCode = 400;
       throw error;
     }
 
     const user = await User.findOne({ _id: id });
     if (!user) {
       const error = new Error('Not found');
-      error.statusCode = 404;
+      (error as any).statusCode = 404;
       throw error;
     }
 
@@ -41,12 +51,16 @@ exports.getUser = async (req, res, next) => {
   }
 };
 
-exports.updateUser = async (req, res, next) => {
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = req.params.id;
     if (!id) {
       const error = new Error('Bad request');
-      error.statusCode = 400;
+      (error as any).statusCode = 400;
       throw error;
     }
 
@@ -76,12 +90,16 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
-exports.deleteUser = async (req, res, next) => {
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = req.params.id;
     if (!id) {
       const error = new Error('Bad request');
-      error.statusCode = 400;
+      (error as any).statusCode = 400;
       throw error;
     }
 
@@ -89,7 +107,7 @@ exports.deleteUser = async (req, res, next) => {
 
     if (!deleted) {
       const error = new Error('Not found');
-      error.statusCode = 404;
+      (error as any).statusCode = 404;
       throw error;
     }
 
@@ -102,23 +120,27 @@ exports.deleteUser = async (req, res, next) => {
   }
 };
 
-exports.followUser = async (req, res, next) => {
+export const followUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { recipientId } = req.body;
 
     const recipient = await User.findById(recipientId);
     if (!recipient) {
       const error = new Error('Not found');
-      error.statusCode = 404;
+      (error as any).statusCode = 404;
       throw error;
     }
 
-    recipient.followers.push(req.user._id);
+    recipient.followers.push(((req as any).user as IUser)._id);
     await recipient.save();
 
-    const sender = await User.findById(req.user._id);
-    sender.followed.push(recipientId);
-    await sender.save();
+    const sender = await User.findById(((req as any).user as IUser)._id);
+    sender!.followed.push(recipientId);
+    await sender!.save();
 
     res.status(204);
     return res.send();
@@ -129,27 +151,31 @@ exports.followUser = async (req, res, next) => {
   }
 };
 
-exports.unfollowUser = async (req, res, next) => {
+export const unfollowUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { recipientId } = req.body;
 
     const recipient = await User.findById(recipientId);
     if (!recipient) {
       const error = new Error('Not found');
-      error.statusCode = 404;
+      (error as any).statusCode = 404;
       throw error;
     }
 
     recipient.followers = recipient.followers.filter(
-      (element) => element._id.toString() !== req.user._id.toString(),
+      (element) => element.toString() !== (req as any).user._id.toString(),
     );
     await recipient.save();
 
-    const sender = await User.findById(req.user._id);
-    sender.followed = sender.followed.filter(
-      (element) => element._id.toString() !== recipientId.toString(),
+    const sender = await User.findById((req as any).user._id);
+    sender!.followed = sender!.followed.filter(
+      (element) => element.toString() !== recipientId.toString(),
     );
-    await sender.save();
+    await sender!.save();
 
     res.status(204);
     return res.send();
