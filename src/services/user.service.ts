@@ -20,21 +20,8 @@ class UserService implements UserServiceInterface {
 
   public async updateUser(
     id: string,
-    user: UpdateUserDto,
+    update: UpdateUserDto,
   ): Promise<UserInterface | null> {
-    const updateArray = Object.keys(user);
-    let update = {};
-    updateArray.forEach((element: string) => {
-      if (element === 'password') {
-        update = {
-          ...update,
-          [element]: AuthService.hashPassword(user[element]),
-        };
-      } else {
-        update = { ...update, [element]: user[element] };
-      }
-    });
-
     const updated = await User.findOneAndUpdate({ _id: id }, update, {
       new: true,
     });

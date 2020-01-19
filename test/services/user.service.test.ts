@@ -61,19 +61,47 @@ describe('User service', () => {
       return userService
         .updateUser(user._id, { username: 'testModified' })
         .then((result) => {
-          expect(result).to.deep.include({ username: 'test' });
+          expect(result).to.deep.include({
+            username: 'testmodified',
+            email: 'test@test.com',
+          });
         });
     });
 
     // eslint-disable-next-line arrow-body-style
     it('should return null for the passed id', async () => {
       return userService
-        .getUserById('5e24c8036ef40628a5b21138')
+        .updateUser('5e24c8036ef40628a5b21138', {})
         .then((result) => {
           expect(result).to.be.a('null');
         })
         .catch((error) => {
           throw error;
+        });
+    });
+  });
+
+  describe('Delete user by id', () => {
+    it('should delete the user correctly', async () => {
+      const user = new User({
+        username: 'test',
+        email: 'test@test.com',
+        password: 'password',
+      });
+
+      await user.save();
+
+      return userService.deleteUser(user._id).then((result) => {
+        expect(result).to.be.true;
+      });
+    });
+
+    // eslint-disable-next-line arrow-body-style
+    it('should return null for the passed id', async () => {
+      return userService
+        .deleteUser('5e24c8036ef40628a5b21138')
+        .then((result) => {
+          expect(result).to.be.false;
         });
     });
   });
