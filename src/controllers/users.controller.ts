@@ -20,24 +20,26 @@ export default class UsersController implements Controller {
     this.router.delete(`${this.path}/:id`, this.deleteUser);
   }
 
-  private async getUsers(
+  private getUsers = async (
     _req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<Response | void> {
+  ): Promise<Response | void> => {
+    console.log(this.userService);
     try {
       const users = await this.userService.getUsers();
       return res.json(users);
     } catch (error) {
+      console.log(error);
       return next(error);
     }
-  }
+  };
 
-  private async getUserById(
+  private getUserById = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<Response | void> {
+  ): Promise<Response | void> => {
     const id = req.params.id;
     if (!id) {
       return next(new BadRequestException('You must pass an id.'));
@@ -53,13 +55,13 @@ export default class UsersController implements Controller {
     } catch (error) {
       return next(error);
     }
-  }
+  };
 
-  private async updateUser(
+  private updateUser = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<Response | void> {
+  ): Promise<Response | void> => {
     const id = req.params.id;
     const updateUserDto: UpdateUserDto = req.body;
     if (!id) {
@@ -76,13 +78,13 @@ export default class UsersController implements Controller {
     } catch (error) {
       return next(error);
     }
-  }
+  };
 
-  private async deleteUser(
+  private deleteUser = async (
     req: Request,
     res: Response,
     next: NextFunction,
-  ): Promise<Response | void> {
+  ): Promise<Response | void> => {
     const id = req.params.id;
     if (!id) {
       return next(new BadRequestException('You must pass an id.'));
@@ -98,124 +100,8 @@ export default class UsersController implements Controller {
     } catch (error) {
       return next(error);
     }
-  }
+  };
 }
-
-// export const getUsers = async (
-//   _req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const users = await User.find()
-//       .select('_id username email followers followed')
-//       .populate('followers', '_id username email')
-//       .populate('followed', '_id username email');
-
-//     return res.json(users);
-//   } catch (error) {
-//     logger.log('error', error);
-//     next(error);
-//     throw error;
-//   }
-// };
-
-// export const getUser = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const id = req.params.id;
-//     if (!id) {
-//       const error = new Error('Bad request');
-//       (error as any).statusCode = 400;
-//       throw error;
-//     }
-
-//     const user = await User.findOne({ _id: id });
-//     if (!user) {
-//       const error = new Error('Not found');
-//       (error as any).statusCode = 404;
-//       throw error;
-//     }
-
-//     return res.json(user);
-//   } catch (error) {
-//     logger.log('error', error);
-//     next(error);
-//     throw error;
-//   }
-// };
-
-// export const updateUser = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const id = req.params.id;
-//     if (!id) {
-//       const error = new Error('Bad request');
-//       (error as any).statusCode = 400;
-//       throw error;
-//     }
-
-//     const updateArray = Object.keys(req.body);
-//     let update = {};
-
-//     updateArray.forEach((element) => {
-//       if (element === 'password') {
-//         update = {
-//           ...update,
-//           [element]: authService.hashPassword(req.body[element]),
-//         };
-//       } else {
-//         update = { ...update, [element]: req.body[element] };
-//       }
-//     });
-
-//     const updated = await User.findOneAndUpdate({ _id: id }, update, {
-//       new: true,
-//     });
-
-//     return res.json(updated);
-//   } catch (error) {
-//     logger.log('error', error);
-//     next(error);
-//     throw error;
-//   }
-// };
-
-// export const deleteUser = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const id = req.params.id;
-//     if (!id) {
-//       const error = new Error('Bad request');
-//       (error as any).statusCode = 400;
-//       throw error;
-//     }
-
-//     const deleted = await User.findByIdAndDelete(id);
-
-//     if (!deleted) {
-//       const error = new Error('Not found');
-//       (error as any).statusCode = 404;
-//       throw error;
-//     }
-
-//     res.status(204);
-//     return res.send();
-//   } catch (error) {
-//     logger.log('error', error);
-//     next(error);
-//     throw error;
-//   }
-// };
 
 // export const followUser = async (
 //   req: Request,
