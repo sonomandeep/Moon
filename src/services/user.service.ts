@@ -1,5 +1,4 @@
 import User, { UserInterface } from '../models/user.model';
-import AuthService from '../services/auth.service';
 import UpdateUserDto from '../dtos/user/updateUser.dto';
 
 interface UserServiceInterface {

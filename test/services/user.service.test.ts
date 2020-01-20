@@ -35,7 +35,6 @@ describe('User service', () => {
       });
     });
 
-    // eslint-disable-next-line arrow-body-style
     it('should return null for the passed id', async () => {
       return userService
         .getUserById('5e24c8036ef40628a5b21138')
@@ -68,7 +67,6 @@ describe('User service', () => {
         });
     });
 
-    // eslint-disable-next-line arrow-body-style
     it('should return null for the passed id', async () => {
       return userService
         .updateUser('5e24c8036ef40628a5b21138', {})
@@ -96,7 +94,6 @@ describe('User service', () => {
       });
     });
 
-    // eslint-disable-next-line arrow-body-style
     it('should return null for the passed id', async () => {
       return userService
         .deleteUser('5e24c8036ef40628a5b21138')

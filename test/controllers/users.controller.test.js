@@ -279,9 +279,7 @@ describe('Users controller', () => {
         status: (code) => {
           this.code = code;
         },
-        send: () => {
-          return this.code;
-        },
+        send: () => this.code,
       };
       const next = () => {};
 
@@ -315,9 +313,7 @@ describe('Users controller', () => {
         status: (code) => {
           this.code = code;
         },
-        send: () => {
-          return this.code;
-        },
+        send: () => this.code,
       };
       const next = () => {};
 
@@ -383,9 +379,7 @@ describe('Users controller', () => {
         status: (code) => {
           this.code = code;
         },
-        send: () => {
-          return this.code;
-        },
+        send: () => this.code,
       };
       const next = () => {};
 

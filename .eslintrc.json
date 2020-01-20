@@ -4,7 +4,11 @@
     "node": true,
     "mocha": true
   },
-  "extends": ["airbnb-base"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
@@ -15,13 +19,5 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
-  "rules": {
-    "no-underscore-dangle": "off",
-    "import/no-unresolved": "off",
-    "import/extensions": "off",
-    "no-extra-semi": "error",
-    "class-methods-use-this": "off",
-    "no-unused-vars": "off",
-    "no-unused-expressions": "off"
-  }
+  "rules": { "no-underscore-dangle": "off" }
 }
