@@ -1,10 +1,10 @@
 import User, { UserInterface } from '../models/user.model';
 import UpdateUserDto from '../dtos/user/updateUser.dto';
 
-interface UserServiceInterface {
+export interface UserServiceInterface {
   getUsers(): Promise<UserInterface[]>;
   getUserById(id: string): Promise<UserInterface | null>;
-  updateUser(id: string, user: UserInterface): Promise<UserInterface | null>;
+  updateUser(id: string, user: UpdateUserDto): Promise<UserInterface | null>;
   deleteUser(id: string): Promise<boolean>;
 }
 

@@ -1,13 +1,104 @@
-import { Request, Response, NextFunction } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 
-import User, { UserInterface } from '../models/user.model';
-import authService from '../services/auth.service';
-import logger from '../config/logger';
+import { UserServiceInterface } from '../services/user.service';
+import UpdateUserDto from '../dtos/user/updateUser.dto';
+import { BadRequestException, NotFoundException } from '../exceptions';
+import Controller from '../interfaces/controller';
 
-export default class UsersController {
-  constructor() {}
+export default class UsersController implements Controller {
+  private path = '/users';
+  public router = Router();
 
-  public getUsers(req: Request, res: Response, next: NextFunction) {}
+  constructor(private userService: UserServiceInterface) {
+    this.initializeRoutes();
+  }
+
+  private initializeRoutes(): void {
+    this.router.get(this.path, this.getUsers);
+    this.router.get(`${this.path}/:id`, this.getUserById);
+    this.router.patch(`${this.path}/:id`, this.updateUser);
+    this.router.delete(`${this.path}/:id`, this.deleteUser);
+  }
+
+  private async getUsers(
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
+    try {
+      const users = await this.userService.getUsers();
+      return res.json(users);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  private async getUserById(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
+    const id = req.params.id;
+    if (!id) {
+      return next(new BadRequestException('You must pass an id.'));
+    }
+
+    try {
+      const user = await this.userService.getUserById(id);
+      if (!user) {
+        throw new NotFoundException('User not found.');
+      }
+
+      return res.json(user);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  private async updateUser(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
+    const id = req.params.id;
+    const updateUserDto: UpdateUserDto = req.body;
+    if (!id) {
+      return next(new BadRequestException('You must pass an id.'));
+    }
+
+    try {
+      const user = await this.userService.updateUser(id, updateUserDto);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return res.json(user);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  private async deleteUser(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
+    const id = req.params.id;
+    if (!id) {
+      return next(new BadRequestException('You must pass an id.'));
+    }
+
+    try {
+      const user = await this.userService.deleteUser(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return res.json(user);
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
 
 // export const getUsers = async (
