@@ -2,43 +2,40 @@ import { Request, Response, NextFunction } from 'express';
 
 import authService from '../services/auth.service';
 import User from '../models/user.model';
-import logger from '../config/logger';
+import { UnauthenticatedException } from '../exceptions';
+import DecodedJwtToken from '../interfaces/jwtToken';
+import RequestWithUser from '../interfaces/requestWithUser';
 
-export default async (req: Request, _res: Response, next: NextFunction) => {
-  try {
-    const token = req.get('Authorization');
-    if (!token) {
-      const err = new Error('You must pass an authorization token');
-      (err as any).statusCode = 401;
-      throw err;
-    }
-
-    let decoded;
-
-    try {
-      decoded = authService.verifyToken(token.replace('Bearer ', ''));
-    } catch (error) {
-      const err = new Error('You must pass a valid token');
-      (err as any).statusCode = 401;
-      throw err;
-    }
-
-    const user = await User.findOne({
-      _id: (decoded as any).id,
-      jwtToken: token.replace('Bearer ', ''),
-    });
-
-    if (!user) {
-      const error = new Error('Unauthorized');
-      (error as any).statusCode = 401;
-      throw error;
-    }
-
-    (req as any).user = user;
-    next();
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
+export default async (
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const token = req.get('Authorization');
+  if (!token) {
+    return next(
+      new UnauthenticatedException('You must pass an authorization token'),
+    );
   }
+
+  let decoded: string | object;
+  try {
+    decoded = authService.verifyToken(token.replace('Bearer ', ''));
+  } catch (error) {
+    return next(
+      new UnauthenticatedException('You must pass a valid authorization token'),
+    );
+  }
+
+  const user = await User.findOne({
+    _id: (decoded as DecodedJwtToken).id,
+    jwtToken: token.replace('Bearer ', ''),
+  });
+
+  if (!user) {
+    return next(new UnauthenticatedException());
+  }
+
+  (req as RequestWithUser).user = user._id;
+  return next();
 };

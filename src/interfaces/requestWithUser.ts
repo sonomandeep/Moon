@@ -1,6 +1,5 @@
-import { Request } from 'express';
-import { UserInterface } from '../models/user.model';
+import express from 'express';
 
-export default interface RequestWithUser extends Request {
-  user: UserInterface;
+export default interface RequestWithUser extends express.Request {
+  user: string;
 }

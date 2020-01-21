@@ -1,16 +1,45 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
+import Sinon from 'sinon';
+import express, { NextFunction, Response, Application } from 'express';
 
 import App from '../../src/app';
 import UsersController from '../../src/controllers/users.controller';
 import UserService from '../../src/services/user.service';
 import User from '../../src/models/user.model';
+import * as middlewares from '../../src/middlewares';
+import RequestWithUser from '../../src/interfaces/requestWithUser';
 
-const { app } = new App([new UsersController(new UserService())]);
+// const { app } = new App([new UsersController(new UserService())]);
+
+let app: Application;
+let authenticateStub: Sinon.SinonStub<
+  [express.Request, express.Response, express.NextFunction],
+  Promise<void>
+>;
 
 chai.use(chaiHttp);
+const userService = new UserService();
 
 describe('Users controller', () => {
+  before(() => {
+    authenticateStub = Sinon.stub(middlewares, 'isAuthenticated').callsFake(
+      async (
+        req: express.Request,
+        _res: Response,
+        next: NextFunction,
+      ): Promise<void> => {
+        (req as RequestWithUser).user = '56cb91bdc3464f14678934ca';
+        next();
+      },
+    );
+    app = new App([new UsersController(userService)]).app;
+  });
+
+  after(() => {
+    authenticateStub.restore();
+  });
+
   describe('GET api/users', () => {
     it('should return an empty array of users', async () => {
       const result = await chai.request(app).get('/api/users');
@@ -154,6 +183,54 @@ describe('Users controller', () => {
 
       const result = await chai.request(app).delete(`/api/users/${user._id}`);
       expect(result.status).to.be.equal(204);
+    });
+  });
+
+  describe('POST api/users/follow', () => {
+    it('should follow user successfully', async () => {
+      const sender = new User({
+        username: 'sender',
+        email: 'sender@test.com',
+        password: 'password',
+      });
+      await sender.save();
+
+      const recipient = new User({
+        username: 'recipient',
+        email: 'recipient@test.com',
+        password: 'password',
+      });
+      await recipient.save();
+
+      const followUserStub = Sinon.stub(userService, 'followUser').resolves(
+        true,
+      );
+
+      const response = await chai
+        .request(app)
+        .post('/api/users/follow')
+        .send({ userId: sender._id, recipientId: recipient._id });
+
+      expect(response.status).to.be.equal(204);
+
+      followUserStub.restore();
+    });
+
+    it('should return bad request', async () => {
+      const followUserStub = Sinon.stub(userService, 'followUser').resolves(
+        false,
+      );
+
+      const response = await chai
+        .request(app)
+        .post('/api/users/follow')
+        .send({
+          userId: '56cb91bdc3464f14678934ca',
+          recipientId: '56cb91bdc3464f14678934ca',
+        });
+
+      expect(response.status).to.be.equal(400);
+      followUserStub.restore();
     });
   });
 });

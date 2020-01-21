@@ -146,7 +146,7 @@ describe('User service', () => {
     });
   });
 
-  describe('Follow user', () => {
+  describe('Unfollow user', () => {
     it('should unfollow user successfully', async () => {
       const sender = new User({
         username: 'sender',

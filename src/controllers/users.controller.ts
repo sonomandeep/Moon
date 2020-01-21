@@ -9,6 +9,8 @@ import {
   ValidationException,
 } from '../exceptions';
 import Controller from '../interfaces/controller';
+import RequestWithUser from '../interfaces/requestWithUser';
+import { isAuthenticated } from '../middlewares';
 
 export default class UsersController implements Controller {
   private path = '/users';
@@ -19,9 +21,10 @@ export default class UsersController implements Controller {
   }
 
   private initializeRoutes(): void {
-    this.router.get(this.path, this.getUsers);
+    this.router.get(this.path, isAuthenticated, this.getUsers);
     this.router.get(
       `${this.path}/:id`,
+      // isAuthenticated,
       param('id')
         .isMongoId()
         .withMessage('You must pass a valid id'),
@@ -29,6 +32,7 @@ export default class UsersController implements Controller {
     );
     this.router.patch(
       `${this.path}/:id`,
+      isAuthenticated,
       param('id')
         .isMongoId()
         .withMessage('You must pass a valid id'),
@@ -36,11 +40,13 @@ export default class UsersController implements Controller {
     );
     this.router.delete(
       `${this.path}/:id`,
+      isAuthenticated,
       param('id')
         .isMongoId()
         .withMessage('You must pass a valid id'),
       this.deleteUser,
     );
+    this.router.post(`${this.path}/follow`, isAuthenticated, this.followUser);
   }
 
   private getUsers = async (
@@ -95,9 +101,6 @@ export default class UsersController implements Controller {
 
     const id = req.params.id;
     const updateUserDto: UpdateUserDto = req.body;
-    if (!id) {
-      return next(new BadRequestException('You must pass an id'));
-    }
 
     try {
       const user = await this.userService.updateUser(id, updateUserDto);
@@ -122,9 +125,6 @@ export default class UsersController implements Controller {
     }
 
     const id = req.params.id;
-    if (!id) {
-      return next(new BadRequestException('You must pass an id'));
-    }
 
     try {
       const user = await this.userService.deleteUser(id);
@@ -132,43 +132,29 @@ export default class UsersController implements Controller {
         throw new NotFoundException('User not found');
       }
 
-      return res.status(204).json(user);
+      return res.status(204).send();
     } catch (error) {
       return next(error);
     }
   };
+
+  private followUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    const { userId, recipientId } = req.body;
+
+    const result = await this.userService.followUser(userId, recipientId);
+    if (!result) {
+      return next(
+        new BadRequestException('You must pass a valid recipient id'),
+      );
+    }
+
+    return res.status(204).send();
+  };
 }
-
-// export const followUser = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const { recipientId } = req.body;
-
-//     const recipient = await User.findById(recipientId);
-//     if (!recipient) {
-//       const error = new Error('Not found');
-//       (error as any).statusCode = 404;
-//       throw error;
-//     }
-
-//     recipient.followers.push(((req as any).user as IUser)._id);
-//     await recipient.save();
-
-//     const sender = await User.findById(((req as any).user as IUser)._id);
-//     sender!.followed.push(recipientId);
-//     await sender!.save();
-
-//     res.status(204);
-//     return res.send();
-//   } catch (error) {
-//     logger.log('error', error);
-//     next(error);
-//     throw error;
-//   }
-// };
 
 // export const unfollowUser = async (
 //   req: Request,
