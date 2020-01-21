@@ -83,7 +83,7 @@ describe('Users controller', () => {
 
   describe('PATCH api/users/:id', () => {
     it('should return validation error passing an invalid id', async () => {
-      const result = await chai.request(app).get('/api/users/id');
+      const result = await chai.request(app).patch('/api/users/id');
       expect(result.body.errors.length).to.be.equal(1);
       expect(result.body.errors[0]).to.deep.include({
         value: 'id',
@@ -97,139 +97,66 @@ describe('Users controller', () => {
     it('should return 404 not found', async () => {
       const result = await chai
         .request(app)
-        .get('/api/users/5e2726dc077ee2343ce59800');
+        .patch('/api/users/5e2726dc077ee2343ce59800');
       expect(result.body.message).to.be.equal('User not found');
       expect(result.status).to.be.equal(404);
     });
+
+    it('should update and return the user for the passed id', async () => {
+      const user = new User({
+        username: 'user',
+        email: 'test@test.com',
+        password: 'password',
+      });
+      await user.save();
+
+      const result = await chai
+        .request(app)
+        .patch(`/api/users/${user._id}`)
+        .send({ username: 'modified' });
+      expect(result.body).to.deep.include({
+        _id: user._id.toString(),
+        username: 'modified',
+        email: 'test@test.com',
+      });
+      expect(result.status).to.be.equal(200);
+    });
+  });
+
+  describe('DELETE api/users/:id', () => {
+    it('should return validation error passing an invalid id', async () => {
+      const result = await chai.request(app).delete('/api/users/id');
+      expect(result.body.errors.length).to.be.equal(1);
+      expect(result.body.errors[0]).to.deep.include({
+        value: 'id',
+        msg: 'You must pass a valid id',
+        param: 'id',
+        location: 'params',
+      });
+      expect(result.status).to.be.equal(422);
+    });
+
+    it('should return 404 not found', async () => {
+      const result = await chai
+        .request(app)
+        .delete('/api/users/5e2726dc077ee2343ce59800');
+      expect(result.body.message).to.be.equal('User not found');
+      expect(result.status).to.be.equal(404);
+    });
+
+    it('should update and return the user for the passed id', async () => {
+      const user = new User({
+        username: 'user',
+        email: 'test@test.com',
+        password: 'password',
+      });
+      await user.save();
+
+      const result = await chai.request(app).delete(`/api/users/${user._id}`);
+      expect(result.status).to.be.equal(204);
+    });
   });
 });
-
-//   describe('Update user', () => {
-//     it('should update user for the passed id', async () => {
-//       const user = new User({
-//         username: 'user',
-//         email: 'test@test.com',
-//         password: 'password',
-//       });
-//       const savedUser = await user.save();
-
-//       const req = {
-//         params: {
-//           id: savedUser._id,
-//         },
-//         body: { username: 'userModified', password: 'passwordModified' },
-//       };
-//       const res = {
-//         json: (data) => data,
-//       };
-//       const next = () => {};
-
-//       sinon.stub(authService, 'hashPassword').returns('passwordModified');
-
-//       return usersController
-//         .updateUser(req, res, next)
-//         .then((result) => {
-//           expect(result.username).to.be.equal('usermodified');
-//           expect(result.email).to.be.equal('test@test.com');
-//           expect(result.password).to.be.equal('passwordModified');
-//         })
-//         .catch((err) => {
-//           throw err;
-//         })
-//         .finally(() => {
-//           authService.hashPassword.restore();
-//         });
-//     });
-
-//     it('should throw bad request error for not passing id', async () => {
-//       const req = {
-//         params: {},
-//       };
-//       const res = {
-//         json: (data) => data,
-//       };
-//       const next = () => {};
-
-//       return usersController
-//         .updateUser(req, res, next)
-//         .then(() => {
-//           throw new Error('It should fail');
-//         })
-//         .catch((err) => {
-//           expect(err.message).to.be.equal('Bad request');
-//           expect(err.statusCode).to.be.equal(400);
-//         });
-//     });
-//   });
-
-//   describe('Delete user by id', () => {
-//     it('should delete the user that corresponds to the passed id', () => {
-//       const req = { params: { id: 1 } };
-//       const res = {
-//         status: () => {},
-//         send: () => {},
-//       };
-//       const next = () => {};
-
-//       const resStatusStub = sinon.stub(res, 'status');
-//       const resSendStub = sinon.stub(res, 'send');
-//       sinon.stub(User, 'findByIdAndDelete').returns(true);
-
-//       return usersController
-//         .deleteUser(req, res, next)
-//         .then(() => {
-//           expect(resStatusStub.called).to.be.true;
-//           expect(resSendStub.called).to.be.true;
-//         })
-//         .catch()
-//         .finally(() => {
-//           User.findByIdAndDelete.restore();
-//         });
-//     });
-
-//     it('should throw error for not passing id', async () => {
-//       const req = { params: {} };
-//       const res = {
-//         status: () => {},
-//         send: () => {},
-//       };
-//       const next = () => {};
-
-//       return usersController
-//         .deleteUser(req, res, next)
-//         .then(() => {
-//           throw new Error('It should fail');
-//         })
-//         .catch((err) => {
-//           expect(err.message).to.be.equal('Bad request');
-//           expect(err.statusCode).to.be.equal(400);
-//         });
-//     });
-
-//     it('should not find user for passed id', () => {
-//       const req = { params: { id: 1 } };
-//       const res = {
-//         status: () => {},
-//         send: () => {},
-//       };
-//       const next = () => {};
-
-//       sinon.stub(User, 'findByIdAndDelete').returns(false);
-
-//       return usersController
-//         .deleteUser(req, res, next)
-//         .then(() => {
-//           throw new Error('It should fail');
-//         })
-//         .catch((err) => {
-//           expect(err.message).to.be.equal('Not found');
-//           expect(err.statusCode).to.be.equal(404);
-//         })
-//         .finally(() => {
-//           User.findByIdAndDelete.restore();
-//         });
-//     });
-//   });
 
 //   describe('Follow user', () => {
 //     it('should success with passing the right data', () => {

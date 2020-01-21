@@ -34,7 +34,13 @@ export default class UsersController implements Controller {
         .withMessage('You must pass a valid id'),
       this.updateUser,
     );
-    this.router.delete(`${this.path}/:id`, this.deleteUser);
+    this.router.delete(
+      `${this.path}/:id`,
+      param('id')
+        .isMongoId()
+        .withMessage('You must pass a valid id'),
+      this.deleteUser,
+    );
   }
 
   private getUsers = async (
@@ -46,7 +52,6 @@ export default class UsersController implements Controller {
       const users = await this.userService.getUsers();
       return res.json(users);
     } catch (error) {
-      console.log(error);
       return next(error);
     }
   };
@@ -83,6 +88,11 @@ export default class UsersController implements Controller {
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(new ValidationException(errors.array()));
+    }
+
     const id = req.params.id;
     const updateUserDto: UpdateUserDto = req.body;
     if (!id) {
@@ -106,6 +116,11 @@ export default class UsersController implements Controller {
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(new ValidationException(errors.array()));
+    }
+
     const id = req.params.id;
     if (!id) {
       return next(new BadRequestException('You must pass an id'));
@@ -117,7 +132,7 @@ export default class UsersController implements Controller {
         throw new NotFoundException('User not found');
       }
 
-      return res.json(user);
+      return res.status(204).json(user);
     } catch (error) {
       return next(error);
     }
