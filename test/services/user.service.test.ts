@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { expect } from 'chai';
 import sinon from 'sinon';
 
@@ -102,6 +103,83 @@ describe('User service', () => {
         .then((result) => {
           expect(result).to.be.false;
         });
+    });
+  });
+
+  describe('Follow user', () => {
+    it('should follow user successfully', async () => {
+      const sender = new User({
+        username: 'sender',
+        email: 'sender@test.com',
+        password: 'password',
+      });
+      await sender.save();
+
+      const recipient = new User({
+        username: 'sender',
+        email: 'sender@test.com',
+        password: 'password',
+      });
+      await recipient.save();
+
+      const result = await userService.followUser(sender._id, recipient._id);
+
+      const foundSender = await User.findById(sender._id);
+      const foundRecipient = await User.findById(recipient._id);
+
+      expect(result).to.be.true;
+      expect(foundSender!.followed[0].toString()).to.be.equal(
+        recipient._id.toString(),
+      );
+      expect(foundRecipient!.followers[0].toString()).to.be.equal(
+        sender._id.toString(),
+      );
+    });
+
+    it('should not find users and return false', async () => {
+      const result = await userService.followUser(
+        '5e2732d720d9254c40ab4201',
+        '5e2732d720d9254c40ab4201',
+      );
+
+      expect(result).to.be.false;
+    });
+  });
+
+  describe('Follow user', () => {
+    it('should unfollow user successfully', async () => {
+      const sender = new User({
+        username: 'sender',
+        email: 'sender@test.com',
+        password: 'password',
+      });
+      await sender.save();
+
+      const recipient = new User({
+        username: 'sender',
+        email: 'sender@test.com',
+        password: 'password',
+      });
+      await recipient.save();
+      await userService.followUser(sender._id, recipient._id);
+
+      const result = await userService.unfollowUser(sender._id, recipient._id);
+
+      const foundSender = await User.findById(sender._id);
+      const foundRecipient = await User.findById(recipient._id);
+
+      expect(result).to.be.true;
+      expect(foundSender!.followed).to.be.empty;
+      expect(foundRecipient!.followers).to.be.empty;
+    });
+
+    it('should not find users and return false', async () => {
+      const result = await userService.unfollowUser(
+        '5e2732d720d9254c40ab4201',
+        '5e2732d720d9254c40ab4201',
+      );
+
+      expect(result).to.be.false;
     });
   });
 });
