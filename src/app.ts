@@ -5,7 +5,7 @@ import logger from './config/logger';
 import config from './config';
 import Controller from './interfaces/controller';
 import morgan from 'morgan';
-import { HttpException } from './exceptions/index';
+import { HttpException, ValidationException } from './exceptions/index';
 
 export default class App {
   public app: Application;
@@ -34,7 +34,7 @@ export default class App {
 
   private initializeMiddlewares(): void {
     this.app.use(express.json());
-    this.app.use(morgan('dev'));
+    // this.app.use(morgan('dev'));
   }
 
   private initializeControllers(controllers: Controller[]): void {
@@ -53,49 +53,22 @@ export default class App {
         _next: NextFunction,
       ) => {
         logger.error(error);
+        let response = {};
         const status = error.status || 500;
-        const message = error.message || 'Something went wrong';
-        res.status(status).json({ status, message });
+
+        response = { ...response, status };
+        response = {
+          ...response,
+          message: error.message || 'Something went wrong',
+        };
+
+        if (error instanceof ValidationException) {
+          const data = error.errors;
+          response = { ...response, errors: data };
+        }
+
+        res.status(status).json(response);
       },
     );
   }
 }
-
-// import dotenv from 'dotenv';
-// import morgan from 'morgan';
-// import mongoose from 'mongoose';
-
-// import { HttpException } from './exceptions/index.js';
-
-// dotenv.config();
-
-// const app = express();
-
-// app.use(express.json());
-// app.use(morgan('dev'));
-
-// routes(app);
-
-// app.use(
-//   (error: HttpException, _req: Request, res: Response, next: NextFunction) => {
-//     const status = error.status || 500;
-//     const message = error.message || 'Something went wrong';
-//     res.status(status).json({ status, message });
-//   },
-// );
-
-// mongoose
-//   .connect(process.env.MONGODB_CONNECTION_STRING as string, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-//   })
-//   .then(() => {
-//     logger.log('info', 'Connected to mongodb');
-//     app.listen(process.env.PORT, () => {
-//       logger.log('info', `Server started on port ${process.env.PORT}`);
-//     });
-//   })
-//   .catch((err) => {
-//     logger.log('error', err);
-//     throw err;
-//   });

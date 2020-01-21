@@ -1,8 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { param, validationResult } from 'express-validator';
 
 import { UserServiceInterface } from '../services/user.service';
 import UpdateUserDto from '../dtos/user/updateUser.dto';
-import { BadRequestException, NotFoundException } from '../exceptions';
+import {
+  BadRequestException,
+  NotFoundException,
+  ValidationException,
+} from '../exceptions';
 import Controller from '../interfaces/controller';
 
 export default class UsersController implements Controller {
@@ -15,8 +20,20 @@ export default class UsersController implements Controller {
 
   private initializeRoutes(): void {
     this.router.get(this.path, this.getUsers);
-    this.router.get(`${this.path}/:id`, this.getUserById);
-    this.router.patch(`${this.path}/:id`, this.updateUser);
+    this.router.get(
+      `${this.path}/:id`,
+      param('id')
+        .isMongoId()
+        .withMessage('You must pass a valid id'),
+      this.getUserById,
+    );
+    this.router.patch(
+      `${this.path}/:id`,
+      param('id')
+        .isMongoId()
+        .withMessage('You must pass a valid id'),
+      this.updateUser,
+    );
     this.router.delete(`${this.path}/:id`, this.deleteUser);
   }
 
@@ -25,7 +42,6 @@ export default class UsersController implements Controller {
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    console.log(this.userService);
     try {
       const users = await this.userService.getUsers();
       return res.json(users);
@@ -40,15 +56,20 @@ export default class UsersController implements Controller {
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(new ValidationException(errors.array()));
+    }
+
     const id = req.params.id;
     if (!id) {
-      return next(new BadRequestException('You must pass an id.'));
+      return next(new BadRequestException('You must pass an id'));
     }
 
     try {
       const user = await this.userService.getUserById(id);
       if (!user) {
-        throw new NotFoundException('User not found.');
+        throw new NotFoundException('User not found');
       }
 
       return res.json(user);
@@ -65,7 +86,7 @@ export default class UsersController implements Controller {
     const id = req.params.id;
     const updateUserDto: UpdateUserDto = req.body;
     if (!id) {
-      return next(new BadRequestException('You must pass an id.'));
+      return next(new BadRequestException('You must pass an id'));
     }
 
     try {
@@ -87,7 +108,7 @@ export default class UsersController implements Controller {
   ): Promise<Response | void> => {
     const id = req.params.id;
     if (!id) {
-      return next(new BadRequestException('You must pass an id.'));
+      return next(new BadRequestException('You must pass an id'));
     }
 
     try {

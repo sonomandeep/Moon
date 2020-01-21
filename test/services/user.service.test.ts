@@ -2,7 +2,9 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 
 import User from '../../src/models/user.model';
-import userService from '../../src/services/user.service';
+import UserService from '../../src/services/user.service';
+
+const userService = new UserService();
 
 describe('User service', () => {
   describe('Get users', () => {

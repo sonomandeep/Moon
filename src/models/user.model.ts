@@ -7,7 +7,6 @@ export interface UserInterface extends Document {
   jwtToken: string;
   followers: mongoose.Types.ObjectId[];
   followed: mongoose.Types.ObjectId[];
-  [key: string]: any;
 }
 
 const userSchema = new mongoose.Schema({
