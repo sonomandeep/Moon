@@ -10,8 +10,6 @@ import User from '../../src/models/user.model';
 import * as middlewares from '../../src/middlewares';
 import { RequestWithUser } from '../../src/interfaces';
 
-// const { app } = new App([new UsersController(new UserService())]);
-
 let app: Application;
 let authenticateStub: Sinon.SinonStub<
   [express.Request, express.Response, express.NextFunction],

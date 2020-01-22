@@ -1,4 +1,28 @@
-// const { expect } = require('chai');
+import { expect } from 'chai';
+import express from 'express';
+import sinon from 'sinon';
+
+import User from '../../src/models/user.model';
+import AuthService from '../../src/services/auth.service';
+
+describe('Authentication middleware', () => {
+  it('should success', () => {
+    const req: express.Request = express.request;
+    req.headers.authorization = 'Bearer xyz';
+
+    const user = new User({
+      username: 'test',
+      email: 'test@test.com',
+      password: 'password',
+    });
+
+    const verifyTokenStub = sinon
+      .stub(AuthService, 'verifyToken')
+      .returns('xyz');
+    sinon.stub(User, 'findOne').resolves(new User({}));
+  });
+});
+
 // const sinon = require('sinon');
 
 // const isAuth = require('../../middlewares/is-auth.middleware');
