@@ -1,9 +1,10 @@
 import User, { UserInterface } from '../models/user.model';
 import UpdateUserDto from '../dtos/user/updateUser.dto';
 import mongoose from 'mongoose';
+import { PaginationOptions } from '../interfaces';
 
 export interface UserServiceInterface {
-  getUsers(): Promise<UserInterface[]>;
+  getUsers(options: PaginationOptions): Promise<UserInterface[]>;
   getUserById(id: string): Promise<UserInterface | null>;
   updateUser(id: string, user: UpdateUserDto): Promise<UserInterface | null>;
   deleteUser(id: string): Promise<boolean>;
@@ -12,8 +13,8 @@ export interface UserServiceInterface {
 }
 
 class UserService implements UserServiceInterface {
-  public async getUsers(): Promise<UserInterface[]> {
-    return User.find();
+  public async getUsers(options: PaginationOptions): Promise<UserInterface[]> {
+    return User.find({}, {}, { skip: options.skip, limit: options.limit });
   }
 
   public async getUserById(id: string): Promise<UserInterface | null> {

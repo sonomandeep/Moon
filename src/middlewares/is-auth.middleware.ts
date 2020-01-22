@@ -4,7 +4,7 @@ import authService from '../services/auth.service';
 import User from '../models/user.model';
 import { UnauthenticatedException } from '../exceptions';
 import DecodedJwtToken from '../interfaces/jwtToken';
-import RequestWithUser from '../interfaces/requestWithUser';
+import { RequestWithUser } from '../interfaces';
 
 export default async (
   req: Request,

@@ -13,7 +13,7 @@ describe('User service', () => {
       const stub = sinon.stub(User, 'find').resolves([]);
 
       return userService
-        .getUsers()
+        .getUsers({ limit: 20, skip: 0 })
         .then((result) => {
           expect(result).to.be.eql([]);
         })

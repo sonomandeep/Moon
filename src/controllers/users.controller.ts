@@ -9,8 +9,9 @@ import {
   ValidationException,
 } from '../exceptions';
 import Controller from '../interfaces/controller';
-import RequestWithUser from '../interfaces/requestWithUser';
-import { isAuthenticated } from '../middlewares';
+import { RequestWithUser } from '../interfaces';
+import { isAuthenticated, paginate } from '../middlewares';
+import { RequestWithPagination } from '../interfaces/requests';
 
 export default class UsersController implements Controller {
   private path = '/users';
@@ -21,10 +22,10 @@ export default class UsersController implements Controller {
   }
 
   private initializeRoutes(): void {
-    this.router.get(this.path, isAuthenticated, this.getUsers);
+    this.router.get(this.path, isAuthenticated, paginate, this.getUsers);
     this.router.get(
       `${this.path}/:id`,
-      // isAuthenticated,
+      isAuthenticated,
       param('id')
         .isMongoId()
         .withMessage('You must pass a valid id'),
@@ -55,12 +56,14 @@ export default class UsersController implements Controller {
   }
 
   private getUsers = async (
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
+    const { pagination } = req as RequestWithPagination;
+
     try {
-      const users = await this.userService.getUsers();
+      const users = await this.userService.getUsers(pagination);
       return res.json(users);
     } catch (error) {
       return next(error);

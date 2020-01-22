@@ -8,7 +8,7 @@ import UsersController from '../../src/controllers/users.controller';
 import UserService from '../../src/services/user.service';
 import User from '../../src/models/user.model';
 import * as middlewares from '../../src/middlewares';
-import RequestWithUser from '../../src/interfaces/requestWithUser';
+import { RequestWithUser } from '../../src/interfaces';
 
 // const { app } = new App([new UsersController(new UserService())]);
 
@@ -45,9 +45,9 @@ describe('Users controller', () => {
 
   describe('GET api/users', () => {
     it('should return an empty array of users', async () => {
-      const result = await chai.request(app).get('/api/users');
-      expect(result.body).to.be.eql([]);
-      expect(result.status).to.be.equal(200);
+      const response = await chai.request(app).get('/api/users');
+      expect(response.body).to.be.eql([]);
+      expect(response.status).to.be.equal(200);
     });
 
     it('should return an array of users', async () => {
@@ -60,13 +60,13 @@ describe('Users controller', () => {
         await user.save();
       }
 
-      const result = await chai.request(app).get('/api/users');
-      expect(result.body.length).to.be.equal(5);
-      expect(result.body[0]).to.deep.include({
+      const result = await chai.request(app).get('/api/users?limit=5&skip=3');
+      expect(result.body.length).to.be.equal(2);
+      expect(result.body[0]).to.not.deep.include({
         username: 'user0',
         email: 'test0@test.com',
       });
-      expect(result.body[4]).to.deep.include({
+      expect(result.body[1]).to.deep.include({
         username: 'user4',
         email: 'test4@test.com',
       });
