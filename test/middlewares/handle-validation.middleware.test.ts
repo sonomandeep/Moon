@@ -1,42 +1,16 @@
-// const { expect } = require('chai');
-// const sinon = require('sinon');
-// const expressValidator = require('express-validator');
+import express from 'express';
+import { expect } from 'chai';
 
-// const handleValidation = require('../../middlewares/handle-validation.middleware');
+import { handleValidation } from '../../src/middlewares';
 
-// describe('Handle validation middleware', () => {
-//   it('should throw validation error', () => {
-//     sinon
-//       .stub(expressValidator, 'validationResult')
-//       .returns({ isEmpty: () => false, array: () => [1, 2] });
+describe('Validation middleware', () => {
+  it('should throw validation error', () => {
+    let passed: Error = new Error();
+    const next = (args: Error): void => {
+      passed = args;
+    };
 
-//     try {
-//       handleValidation({}, {}, () => {});
-//     } catch (error) {
-//       expect(error.message).to.be.equal('Validation error');
-//       expect(error.statusCode).to.be.equal(422);
-//       expect(error.data).to.be.eql([1, 2]);
-//     } finally {
-//       expressValidator.validationResult.restore();
-//     }
-//   });
-
-//   it('should handle validation successfully', () => {
-//     const factory = {
-//       next: () => {},
-//     };
-//     const stub = sinon.stub(factory, 'next');
-//     sinon
-//       .stub(expressValidator, 'validationResult')
-//       .returns({ isEmpty: () => true, array: () => [1, 2] });
-
-//     try {
-//       handleValidation({}, {}, factory.next);
-//       expect(stub.called).to.be.true;
-//     } catch (error) {
-//       throw error;
-//     } finally {
-//       expressValidator.validationResult.restore();
-//     }
-//   });
-// });
+    handleValidation(express.request, express.response, next);
+    expect(passed).to.be.undefined;
+  });
+});

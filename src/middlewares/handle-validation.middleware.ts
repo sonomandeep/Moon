@@ -1,15 +1,17 @@
-import { Request, Response, NextFunction } from 'express';
+import express, { NextFunction } from 'express';
 import * as expressValidator from 'express-validator';
+import { ValidationException } from '../exceptions';
 
-export default (req: Request, _res: Response, next: NextFunction) => {
+export default (
+  req: express.Request,
+  _res: express.Response,
+  next: NextFunction,
+): void => {
   const errors = expressValidator.validationResult(req);
 
   if (!errors.isEmpty()) {
-    const error = new Error('Validation error');
-    (error as any).statusCode = 422;
-    (error as any).data = errors.array();
-    throw error;
+    return next(new ValidationException(errors.array()));
   }
 
-  next();
+  return next();
 };
