@@ -47,6 +47,11 @@ export default class UsersController implements Controller {
       this.deleteUser,
     );
     this.router.post(`${this.path}/follow`, isAuthenticated, this.followUser);
+    this.router.post(
+      `${this.path}/unfollow`,
+      isAuthenticated,
+      this.unfollowUser,
+    );
   }
 
   private getUsers = async (
@@ -73,9 +78,6 @@ export default class UsersController implements Controller {
     }
 
     const id = req.params.id;
-    if (!id) {
-      return next(new BadRequestException('You must pass an id'));
-    }
 
     try {
       const user = await this.userService.getUserById(id);
@@ -143,9 +145,28 @@ export default class UsersController implements Controller {
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const { userId, recipientId } = req.body;
+    const { user } = req as RequestWithUser;
+    const { recipientId } = req.body;
 
-    const result = await this.userService.followUser(userId, recipientId);
+    const result = await this.userService.followUser(user._id, recipientId);
+    if (!result) {
+      return next(
+        new BadRequestException('You must pass a valid recipient id'),
+      );
+    }
+
+    return res.status(204).send();
+  };
+
+  private unfollowUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    const { user } = req as RequestWithUser;
+    const { recipientId } = req.body;
+
+    const result = await this.userService.unfollowUser(user._id, recipientId);
     if (!result) {
       return next(
         new BadRequestException('You must pass a valid recipient id'),

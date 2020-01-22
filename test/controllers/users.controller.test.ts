@@ -29,7 +29,10 @@ describe('Users controller', () => {
         _res: Response,
         next: NextFunction,
       ): Promise<void> => {
-        (req as RequestWithUser).user = '56cb91bdc3464f14678934ca';
+        (req as RequestWithUser).user = new User({
+          username: 'admin',
+          email: 'admin@admin.com',
+        });
         next();
       },
     );
@@ -188,13 +191,6 @@ describe('Users controller', () => {
 
   describe('POST api/users/follow', () => {
     it('should follow user successfully', async () => {
-      const sender = new User({
-        username: 'sender',
-        email: 'sender@test.com',
-        password: 'password',
-      });
-      await sender.save();
-
       const recipient = new User({
         username: 'recipient',
         email: 'recipient@test.com',
@@ -209,10 +205,11 @@ describe('Users controller', () => {
       const response = await chai
         .request(app)
         .post('/api/users/follow')
-        .send({ userId: sender._id, recipientId: recipient._id });
+        .send({
+          recipientId: recipient._id,
+        });
 
       expect(response.status).to.be.equal(204);
-
       followUserStub.restore();
     });
 
@@ -225,7 +222,6 @@ describe('Users controller', () => {
         .request(app)
         .post('/api/users/follow')
         .send({
-          userId: '56cb91bdc3464f14678934ca',
           recipientId: '56cb91bdc3464f14678934ca',
         });
 
@@ -233,137 +229,45 @@ describe('Users controller', () => {
       followUserStub.restore();
     });
   });
+
+  describe('POST api/users/unfollow', () => {
+    it('should unfollow user successfully', async () => {
+      const recipient = new User({
+        username: 'recipient',
+        email: 'recipient@test.com',
+        password: 'password',
+      });
+      await recipient.save();
+
+      const unfollowUserStub = Sinon.stub(userService, 'unfollowUser').resolves(
+        true,
+      );
+
+      const response = await chai
+        .request(app)
+        .post('/api/users/unfollow')
+        .send({
+          recipientId: recipient._id,
+        });
+
+      expect(response.status).to.be.equal(204);
+      unfollowUserStub.restore();
+    });
+
+    it('should return bad request', async () => {
+      const unfollowUserStub = Sinon.stub(userService, 'unfollowUser').resolves(
+        false,
+      );
+
+      const response = await chai
+        .request(app)
+        .post('/api/users/unfollow')
+        .send({
+          recipientId: '56cb91bdc3464f14678934ca',
+        });
+
+      expect(response.status).to.be.equal(400);
+      unfollowUserStub.restore();
+    });
+  });
 });
-
-//   describe('Follow user', () => {
-//     it('should success with passing the right data', () => {
-//       const req = { user: { _id: 1 }, body: { recipientId: 2 } };
-//       const res = {
-//         status: (code) => {
-//           this.code = code;
-//         },
-//         send: () => this.code,
-//       };
-//       const next = () => {};
-
-//       const findByIdStub = sinon.stub(User, 'findById');
-//       findByIdStub
-//         .withArgs(1)
-//         .returns({ _id: 1, followed: [], save: () => true });
-//       findByIdStub
-//         .withArgs(2)
-//         .returns({ _id: 2, followers: [], save: () => true });
-
-//       return usersController
-//         .followUser(req, res, next)
-//         .then((result) => {
-//           expect(findByIdStub.callCount).to.be.equal(2);
-//           expect(findByIdStub.calledWith(1)).to.be.equal(true);
-//           expect(findByIdStub.calledWith(2)).to.be.equal(true);
-//           expect(result).to.be.equal(204);
-//         })
-//         .catch((err) => {
-//           throw err;
-//         })
-//         .finally(() => {
-//           User.findById.restore();
-//         });
-//     });
-
-//     it('should not find the recipient user', () => {
-//       const req = { user: { _id: 1 }, body: { recipientId: 2 } };
-//       const res = {
-//         status: (code) => {
-//           this.code = code;
-//         },
-//         send: () => this.code,
-//       };
-//       const next = () => {};
-
-//       const findByIdStub = sinon.stub(User, 'findById');
-//       findByIdStub
-//         .withArgs(1)
-//         .returns({ _id: 1, followed: [], save: () => true });
-//       findByIdStub.withArgs(2).returns(false);
-
-//       return usersController
-//         .followUser(req, res, next)
-//         .then(() => {
-//           throw new Error('It should fail');
-//         })
-//         .catch((err) => {
-//           expect(err.message).to.be.equal('Not found');
-//           expect(err.statusCode).to.be.equal(404);
-//         })
-//         .finally(() => {
-//           User.findById.restore();
-//         });
-//     });
-//   });
-
-//   describe('Unfollow user', () => {
-//     it('should unfollow user successfully passing the right data', () => {
-//       const req = { user: { _id: 1 }, body: { recipientId: 2 } };
-//       const res = {
-//         status: (code) => {
-//           this.code = code;
-//         },
-//         send: () => this.code,
-//       };
-//       const next = () => {};
-
-//       const findByIdStub = sinon.stub(User, 'findById');
-//       findByIdStub
-//         .withArgs(1)
-//         .returns({ _id: 1, followed: [], save: () => true });
-//       findByIdStub
-//         .withArgs(2)
-//         .returns({ _id: 2, followers: [], save: () => true });
-
-//       return usersController
-//         .unfollowUser(req, res, next)
-//         .then((result) => {
-//           expect(findByIdStub.callCount).to.be.equal(2);
-//           expect(findByIdStub.calledWith(1)).to.be.equal(true);
-//           expect(findByIdStub.calledWith(2)).to.be.equal(true);
-//           expect(result).to.be.equal(204);
-//         })
-//         .catch((err) => {
-//           throw err;
-//         })
-//         .finally(() => {
-//           User.findById.restore();
-//         });
-//     });
-
-//     it('should not find the recipient user', () => {
-//       const req = { user: { _id: 1 }, body: { recipientId: 2 } };
-//       const res = {
-//         status: (code) => {
-//           this.code = code;
-//         },
-//         send: () => this.code,
-//       };
-//       const next = () => {};
-
-//       const findByIdStub = sinon.stub(User, 'findById');
-//       findByIdStub
-//         .withArgs(1)
-//         .returns({ _id: 1, followed: [], save: () => true });
-//       findByIdStub.withArgs(2).returns(false);
-
-//       return usersController
-//         .unfollowUser(req, res, next)
-//         .then(() => {
-//           throw new Error('It should fail');
-//         })
-//         .catch((err) => {
-//           expect(err.message).to.be.equal('Not found');
-//           expect(err.statusCode).to.be.equal(404);
-//         })
-//         .finally(() => {
-//           User.findById.restore();
-//         });
-//     });
-//   });
-// });
