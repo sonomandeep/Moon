@@ -31,7 +31,6 @@ export default async (
     _id: (decoded as DecodedJwtToken).id,
     jwtToken: token.replace('Bearer ', ''),
   });
-
   if (!user) {
     return next(new UnauthenticatedException());
   }

@@ -1,47 +1,61 @@
-// const { expect } = require('chai');
-// const sinon = require('sinon');
+import express from 'express';
+import { expect } from 'chai';
 
-// const isAuthorized = require('../../middlewares/is-authorized.middleware');
+import { RequestWithUser } from '../../src/interfaces/requests';
+import { isAuthorized } from '../../src/middlewares';
+import User from '../../src/models/user.model';
+import sinon from 'sinon';
 
-// describe('Is authorized middleware', () => {
-//   it('should throw bad request error', () => {
-//     const req = { params: {} };
-//     const res = {};
-//     const next = () => {};
+describe('Authorization middleware', () => {
+  it('should throw bad request error', () => {
+    const req = express.request;
+    req.params = {};
 
-//     try {
-//       isAuthorized(req, res, next);
-//     } catch (error) {
-//       expect(error.message).to.be.equal('Bad request');
-//       expect(error.statusCode).to.be.equal(400);
-//     }
-//   });
+    try {
+      isAuthorized(req, express.response, () => {
+        return;
+      });
+    } catch (error) {
+      expect(error.message).to.be.equal('Bad request');
+      expect(error.statusCode).to.be.equal(400);
+    }
+  });
 
-//   it('should fail id check', () => {
-//     const req = { params: { id: 1 }, user: { _id: 2 } };
-//     const res = {};
-//     const next = () => {};
+  it('should fail id check', () => {
+    const req = express.request;
+    req.params = { id: '1' };
+    (req as RequestWithUser).user = new User({
+      username: 'test',
+      email: 'test@test.com',
+      password: 'password',
+    });
 
-//     try {
-//       isAuthorized(req, res, next);
-//     } catch (error) {
-//       expect(error.message).to.be.equal('Unauthorized');
-//       expect(error.statusCode).to.be.equal(403);
-//     }
-//   });
+    try {
+      isAuthorized(req, express.response, () => {
+        return;
+      });
+    } catch (error) {
+      expect(error.message).to.be.equal('Unauthorized');
+      expect(error.statusCode).to.be.equal(403);
+    }
+  });
 
-//   it('should success', () => {
-//     const req = { params: { id: 1 }, user: { _id: 1 } };
-//     const res = {};
-//     const factory = { next: () => {} };
+  it('should success passing the right data', () => {
+    const user = new User({
+      username: 'test',
+      email: 'test@test.com',
+      password: 'password',
+    });
+    const req = express.request;
+    req.params = { id: user._id };
+    (req as RequestWithUser).user = user;
 
-//     const stub = sinon.stub(factory, 'next');
+    let passed: Error = new Error();
+    const next = (args: Error): void => {
+      passed = args;
+    };
 
-//     try {
-//       isAuthorized(req, res, factory.next);
-//       expect(stub.called).to.be.true;
-//     } catch (error) {
-//       throw error;
-//     }
-//   });
-// });
+    isAuthorized(req, express.response, next);
+    expect(passed).to.be.undefined;
+  });
+});

@@ -1,26 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 
-import logger from '../config/logger';
+import { BadRequestException, UnauthorizedException } from '../exceptions';
+import { RequestWithUser } from '../interfaces/requests';
 
-export default (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      const error = new Error('Bad request');
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    if (id !== (req as any).user._id) {
-      const error = new Error('Unauthorized');
-      (error as any).statusCode = 403;
-      throw error;
-    }
-
-    next();
-  } catch (error) {
-    logger.log('error', error);
-    next(error);
-    throw error;
+export default (req: Request, res: Response, next: NextFunction): void => {
+  const id = req.params.id;
+  if (!id) {
+    return next(new BadRequestException());
   }
+
+  if (id !== (req as RequestWithUser).user._id) {
+    return next(new UnauthorizedException());
+  }
+
+  return next();
 };
