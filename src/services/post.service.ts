@@ -3,16 +3,21 @@ import { CreatePostDto, UpdatePostDto } from '../dtos/post';
 import { PaginationOptions } from '../interfaces';
 import InternalServerError from '../exceptions/internalServerError.exception';
 import NotFoundException from '../exceptions/notFound.exception';
+import UnauthorizedException from '../exceptions/unauthorized.exception';
 
 export interface PostServiceInterface {
   getPosts(options: PaginationOptions): Promise<PostInterface[]>;
-  getPostById(id: string): Promise<PostInterface>;
-  createPost(creaetPostDto: CreatePostDto): Promise<PostInterface>;
+  getPostById(postId: string): Promise<PostInterface>;
+  createPost(
+    userId: string,
+    creaetPostDto: CreatePostDto,
+  ): Promise<PostInterface>;
   updatePost(
-    id: string,
+    userId: string,
+    postId: string,
     updatePostDto: UpdatePostDto,
   ): Promise<PostInterface | null>;
-  deletePost(id: string): Promise<boolean>;
+  deletePost(userId: string, postId: string): Promise<boolean>;
 }
 
 class PostService implements PostServiceInterface {
@@ -24,8 +29,8 @@ class PostService implements PostServiceInterface {
     ).select('_id description user');
   }
 
-  public async getPostById(id: string): Promise<PostInterface> {
-    const post = await Post.findById(id).select('_id description user');
+  public async getPostById(postId: string): Promise<PostInterface> {
+    const post = await Post.findById(postId).select('_id description user');
     if (!post) {
       throw new NotFoundException('Post not found');
     }
@@ -34,11 +39,12 @@ class PostService implements PostServiceInterface {
   }
 
   public async createPost(
+    userId: string,
     createPostDto: CreatePostDto,
   ): Promise<PostInterface> {
     const created = new Post({
       description: createPostDto.description,
-      user: createPostDto.user,
+      user: userId,
     });
     await created.save();
 
@@ -51,15 +57,37 @@ class PostService implements PostServiceInterface {
   }
 
   public async updatePost(
-    id: string,
+    userId: string,
+    postId: string,
     updatePostDto: UpdatePostDto,
   ): Promise<PostInterface | null> {
-    const post = await Post.findByIdAndUpdate(id, updatePostDto, { new: true });
+    let post = await Post.findById(postId);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    if (post.user.toHexString() !== userId.toString()) {
+      throw new UnauthorizedException();
+    }
+
+    post = await Post.findByIdAndUpdate(postId, updatePostDto, {
+      new: true,
+    });
+
     return post;
   }
 
-  public async deletePost(id: string): Promise<boolean> {
-    const result = await Post.findByIdAndDelete(id);
+  public async deletePost(userId: string, postId: string): Promise<boolean> {
+    const post = await Post.findById(postId);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    if (post.user.toHexString() !== userId.toString()) {
+      throw new UnauthorizedException();
+    }
+
+    const result = await Post.findByIdAndDelete(postId);
     return !!result;
   }
 }

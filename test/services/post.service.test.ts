@@ -21,7 +21,7 @@ describe('Post service', () => {
         await post.save();
       }
 
-      const posts = await postService.getPosts({ skip: 1, limit: 2 });
+      const posts = await postService.getPosts(user._id, { skip: 1, limit: 2 });
 
       expect(posts.length).to.be.equal(2);
       expect(posts[0]).to.deep.include({
