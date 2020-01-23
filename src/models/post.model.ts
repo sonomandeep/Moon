@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
 
-export interface Post {
-  _id: string;
+export interface PostInterface extends mongoose.Document {
   description: string;
-  user: mongoose.Types.ObjectId[];
+  user: mongoose.Types.ObjectId;
 }
 
 const postSchema = new mongoose.Schema(
@@ -21,4 +20,4 @@ const postSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model('Post', postSchema);
+export default mongoose.model<PostInterface>('Post', postSchema);

@@ -9,17 +9,13 @@ const userService = new UserService();
 
 describe('User service', () => {
   describe('Get users', () => {
-    it('should return empty array of users', () => {
+    it('should return empty array of users', async () => {
       const stub = sinon.stub(User, 'find').resolves([]);
 
-      return userService
-        .getUsers({ limit: 20, skip: 0 })
-        .then((result) => {
-          expect(result).to.be.eql([]);
-        })
-        .finally(() => {
-          stub.restore();
-        });
+      const result = await userService.getUsers({ limit: 20, skip: 0 });
+      expect(result).to.be.eql([]);
+
+      stub.restore();
     });
   });
 
@@ -33,9 +29,9 @@ describe('User service', () => {
 
       await user.save();
 
-      return userService.getUserById(user._id).then((result) => {
-        expect(result).to.deep.include({ username: 'test' });
-      });
+      const result = await userService.getUserById(user._id);
+
+      expect(result).to.deep.include({ username: 'test' });
     });
 
     it('should return null for the passed id', async () => {
@@ -138,7 +134,7 @@ describe('User service', () => {
 
     it('should not find users and return false', async () => {
       const result = await userService.followUser(
-        '5e2732d720d9254c40ab4201',
+        '5e2732d720d9254c40ab4200',
         '5e2732d720d9254c40ab4201',
       );
 
@@ -175,7 +171,7 @@ describe('User service', () => {
 
     it('should not find users and return false', async () => {
       const result = await userService.unfollowUser(
-        '5e2732d720d9254c40ab4201',
+        '5e2732d720d9254c40ab4200',
         '5e2732d720d9254c40ab4201',
       );
 

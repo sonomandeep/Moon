@@ -2,6 +2,7 @@ import User, { UserInterface } from '../models/user.model';
 import UpdateUserDto from '../dtos/user/updateUser.dto';
 import mongoose from 'mongoose';
 import { PaginationOptions } from '../interfaces';
+import BadRequest from '../exceptions/badRequest.exception';
 
 export interface UserServiceInterface {
   getUsers(options: PaginationOptions): Promise<UserInterface[]>;
@@ -14,11 +15,16 @@ export interface UserServiceInterface {
 
 class UserService implements UserServiceInterface {
   public async getUsers(options: PaginationOptions): Promise<UserInterface[]> {
-    return User.find({}, {}, { skip: options.skip, limit: options.limit });
+    return User.find({}, '_id email username followers followed jwtToken', {
+      skip: options.skip,
+      limit: options.limit,
+    });
   }
 
   public async getUserById(id: string): Promise<UserInterface | null> {
-    return User.findById(id);
+    return User.findById(id).select(
+      '_id email username followers followed jwtToken',
+    );
   }
 
   public async updateUser(
@@ -39,13 +45,24 @@ class UserService implements UserServiceInterface {
   }
 
   public async followUser(id: string, recipientId: string): Promise<boolean> {
+    if (id === recipientId) {
+      throw new BadRequest();
+    }
+
     const recipient = await User.findById(recipientId);
     const sender = await User.findById(id);
     if (!recipient || !sender) {
       return false;
     }
 
-    // TODO: write an helper function for convert string to objectIds
+    if (
+      recipient.followers.find(
+        (element) => id.toString() === element.toHexString(),
+      )
+    ) {
+      throw new BadRequest('You already follow this user');
+    }
+
     recipient.followers.push(mongoose.Types.ObjectId(id));
     await recipient.save();
 
@@ -56,10 +73,22 @@ class UserService implements UserServiceInterface {
   }
 
   public async unfollowUser(id: string, recipientId: string): Promise<boolean> {
+    if (id === recipientId) {
+      throw new BadRequest();
+    }
+
     const recipient = await User.findById(recipientId);
     const sender = await User.findById(id);
     if (!recipient || !sender) {
       return false;
+    }
+
+    if (
+      !recipient.followers.find(
+        (element) => id.toString() === element.toHexString(),
+      )
+    ) {
+      throw new BadRequest("You don't follow this user");
     }
 
     recipient.followers = recipient.followers.filter((element) => {

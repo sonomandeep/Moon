@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { param, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 
 import { UserServiceInterface } from '../services/user.service';
 import UpdateUserDto from '../dtos/user/updateUser.dto';
@@ -10,8 +10,12 @@ import {
 } from '../exceptions';
 import Controller from '../interfaces/controller';
 import { RequestWithUser } from '../interfaces';
-import { isAuthenticated, paginate } from '../middlewares';
+import { isAuthenticated } from '../middlewares';
 import { RequestWithPagination } from '../interfaces/requests';
+import {
+  getUsersMiddlewares,
+  defaultMiddlewares,
+} from '../validation/users.validation';
 
 export default class UsersController implements Controller {
   private path = '/users';
@@ -22,29 +26,16 @@ export default class UsersController implements Controller {
   }
 
   private initializeRoutes(): void {
-    this.router.get(this.path, isAuthenticated, paginate, this.getUsers);
-    this.router.get(
-      `${this.path}/:id`,
-      isAuthenticated,
-      param('id')
-        .isMongoId()
-        .withMessage('You must pass a valid id'),
-      this.getUserById,
-    );
+    this.router.get(this.path, getUsersMiddlewares(), this.getUsers);
+    this.router.get(`${this.path}/:id`, defaultMiddlewares(), this.getUserById);
     this.router.patch(
       `${this.path}/:id`,
-      isAuthenticated,
-      param('id')
-        .isMongoId()
-        .withMessage('You must pass a valid id'),
+      defaultMiddlewares(),
       this.updateUser,
     );
     this.router.delete(
       `${this.path}/:id`,
-      isAuthenticated,
-      param('id')
-        .isMongoId()
-        .withMessage('You must pass a valid id'),
+      defaultMiddlewares(),
       this.deleteUser,
     );
     this.router.post(`${this.path}/follow`, isAuthenticated, this.followUser);
@@ -151,11 +142,13 @@ export default class UsersController implements Controller {
     const { user } = req as RequestWithUser;
     const { recipientId } = req.body;
 
-    const result = await this.userService.followUser(user._id, recipientId);
-    if (!result) {
-      return next(
-        new BadRequestException('You must pass a valid recipient id'),
-      );
+    try {
+      const result = await this.userService.followUser(user._id, recipientId);
+      if (!result) {
+        throw new BadRequestException('You must pass a valid recipient id');
+      }
+    } catch (error) {
+      return next(error);
     }
 
     return res.status(204).send();
@@ -169,48 +162,15 @@ export default class UsersController implements Controller {
     const { user } = req as RequestWithUser;
     const { recipientId } = req.body;
 
-    const result = await this.userService.unfollowUser(user._id, recipientId);
-    if (!result) {
-      return next(
-        new BadRequestException('You must pass a valid recipient id'),
-      );
+    try {
+      const result = await this.userService.unfollowUser(user._id, recipientId);
+      if (!result) {
+        throw new BadRequestException('You must pass a valid recipient id');
+      }
+    } catch (error) {
+      return next(error);
     }
 
     return res.status(204).send();
   };
 }
-
-// export const unfollowUser = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const { recipientId } = req.body;
-
-//     const recipient = await User.findById(recipientId);
-//     if (!recipient) {
-//       const error = new Error('Not found');
-//       (error as any).statusCode = 404;
-//       throw error;
-//     }
-
-//     recipient.followers = recipient.followers.filter(
-//       (element) => element.toString() !== (req as any).user._id.toString(),
-//     );
-//     await recipient.save();
-
-//     const sender = await User.findById((req as any).user._id);
-//     sender!.followed = sender!.followed.filter(
-//       (element) => element.toString() !== recipientId.toString(),
-//     );
-//     await sender!.save();
-
-//     res.status(204);
-//     return res.send();
-//   } catch (error) {
-//     logger.log('error', error);
-//     next(error);
-//     throw error;
-//   }
-// }

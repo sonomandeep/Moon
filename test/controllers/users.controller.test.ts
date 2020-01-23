@@ -144,6 +144,7 @@ describe('Users controller', () => {
         .request(app)
         .patch(`/api/users/${user._id}`)
         .send({ username: 'modified' });
+
       expect(result.body).to.deep.include({
         _id: user._id.toString(),
         username: 'modified',
