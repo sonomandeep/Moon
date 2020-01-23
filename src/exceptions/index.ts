@@ -4,6 +4,7 @@ import BadRequestException from './badRequest.exception';
 import ValidationException from './validation.exception';
 import UnauthenticatedException from './unauthenticated.exception';
 import UnauthorizedException from './unauthorized.exception';
+import BadCredentialsException from './badCredentials.exception';
 
 export {
   HttpException,
@@ -12,4 +13,5 @@ export {
   ValidationException,
   UnauthenticatedException,
   UnauthorizedException,
+  BadCredentialsException,
 };
