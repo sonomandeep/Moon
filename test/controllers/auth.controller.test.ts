@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import Sinon from 'sinon';
+import bcrypt from 'bcryptjs';
 
 import * as middlewares from '../../src/middlewares';
 import { RequestWithUser } from '../../src/interfaces';
@@ -97,77 +98,105 @@ describe('Auth controller', () => {
       });
     });
   });
+
+  describe('POST api/auth/login', () => {
+    it('should login the user successfully and return it with jwtToken', async () => {
+      const compareStub = Sinon.stub(bcrypt, 'compare').resolves(true);
+
+      const user = new User({
+        username: 'test',
+        email: 'test@test.com',
+        password: 'password',
+      });
+
+      await user.save();
+
+      const response = await chai
+        .request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'test',
+          password: 'password',
+        });
+
+      expect(response.status).to.be.equal(200);
+      expect(response.body).to.deep.include({
+        username: 'test',
+        email: 'test@test.com',
+        followers: [],
+        followed: [],
+      });
+
+      expect(response.body.jwtToken).to.be.string;
+      compareStub.restore();
+    });
+
+    it('should not find the user passed for the login', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'test',
+          password: 'password',
+        });
+
+      expect(response.status).to.be.equal(404);
+      expect(response.body).to.deep.equal({
+        status: 404,
+        message: 'User not found',
+      });
+    });
+
+    it('should throw bad credentials exception', async () => {
+      const user = new User({
+        username: 'test',
+        email: 'test@test.com',
+        password: 'password',
+      });
+
+      await user.save();
+
+      const response = await chai
+        .request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'test',
+          password: 'wrongPassword',
+        });
+
+      expect(response.status).to.be.equal(401);
+      expect(response.body).to.deep.equal({
+        status: 401,
+        message:
+          'A user with this username/password combination does not exist',
+      });
+    });
+
+    it('should throw validation exception', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 't',
+          password: 'wrong',
+        });
+
+      expect(response.status).to.be.equal(422);
+      expect(response.body.errors[0]).to.deep.equal({
+        value: 't',
+        msg: 'The username should have at least 3 characters',
+        param: 'username',
+        location: 'body',
+      });
+      expect(response.body.errors[1]).to.deep.equal({
+        value: 'wrong',
+        msg: 'The password should have at least 6 characters',
+        param: 'password',
+        location: 'body',
+      });
+    });
+  });
 });
-
-// const { expect } = require('chai');
-// const sinon = require('sinon');
-// const bcrypt = require('bcryptjs');
-
-// const authController = require('../../controllers/auth.controller');
-// const User = require('../../models/user.model');
-
-// describe('Auth controller', () => {
-//   describe('Register', () => {
-//     it('should create new user', async () => {
-//       const req = {
-//         body: {
-//           username: 'testuser',
-//           email: 'testuser@test.com',
-//           password: 'password',
-//         },
-//       };
-//       const res = { json: (data) => data };
-
-//       return authController
-//         .register(req, res, () => {})
-//         .then(({ id, username, email }) => {
-//           expect(id).to.not.be.null;
-//           expect(username).to.be.equal('testuser');
-//           expect(email).to.be.equal('testuser@test.com');
-//         })
-//         .catch((err) => {
-//           throw err;
-//         });
-//     });
-//   });
-
-//   describe('Login', () => {
-//     it('should login successfully', async () => {
-//       sinon.stub(bcrypt, 'compare').returns(true);
-
-//       const req = {
-//         body: { username: 'testuser', password: 'password' },
-//       };
-
-//       const res = { json: (data) => data };
-
-//       const user = new User({
-//         username: 'testuser',
-//         password: 'password',
-//         email: 'testuser@test.com',
-//       });
-//       try {
-//         await user.save();
-//       } catch (error) {
-//         throw error;
-//       }
-
-//       return authController
-//         .login(req, res, () => {})
-//         .then((result) => {
-//           expect(result.jwtToken).to.be.not.null;
-//           expect(result.user._id).to.be.not.null;
-//           expect(result.user.username).to.be.equal('testuser');
-//           expect(result.user.email).to.be.equal('testuser@test.com');
-//         })
-//         .catch((err) => {
-//           console.log('ERRORE');
-//           throw err;
-//         })
-//         .finally(() => {
-//           bcrypt.compare.restore();
-//         });
-//     });
 
 //     it('should not find a user', async () => {
 //       const req = {

@@ -87,8 +87,10 @@ describe('Auth service', () => {
       expect(logged).to.deep.include({
         username: 'test',
         email: 'test@test.com',
-        password: 'password',
+        followers: [],
+        followed: [],
       });
+      expect(logged.jwtToken).to.be.string;
       expect(logged.jwtToken).to.be.equal('tokenMock');
 
       compareStub.restore();

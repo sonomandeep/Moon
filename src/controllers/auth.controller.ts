@@ -5,6 +5,9 @@ import { Controller } from '../interfaces';
 import { AuthServiceInterface } from '../services/auth.service';
 import User from '../models/user.model';
 import { handleValidation } from '../middlewares';
+import RegisterUserDto from '../dtos/user/registerUser.dto';
+import LoginUserDto from '../dtos/user/loginUser.dto';
+import { InternalServerError } from '../exceptions';
 
 class AuthController implements Controller {
   private path = '/auth';
@@ -50,6 +53,25 @@ class AuthController implements Controller {
       handleValidation,
       this.register,
     );
+    this.router.post(
+      `${this.path}/login`,
+      body('username')
+        .trim()
+        .isLength({ min: 3, max: 32 })
+        .withMessage('The username should have at least 3 characters')
+        .isAlphanumeric()
+        .custom((value) => {
+          return (value as string).toLowerCase();
+        }),
+      body('password')
+        .trim()
+        .isLength({ min: 6 })
+        .withMessage('The password should have at least 6 characters')
+        .isAlphanumeric()
+        .withMessage('The password should have only alphanumerical characters'),
+      handleValidation,
+      this.login,
+    );
   }
 
   private register = async (
@@ -57,7 +79,7 @@ class AuthController implements Controller {
     res: express.Response,
     next: express.NextFunction,
   ): Promise<express.Response | void> => {
-    const registerUserDto = req.body;
+    const registerUserDto: RegisterUserDto = req.body;
 
     try {
       const result = await this.authService.register(registerUserDto);
@@ -66,69 +88,21 @@ class AuthController implements Controller {
       return next(error);
     }
   };
+
+  private login = async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ): Promise<express.Response | void> => {
+    const loginUserDto: LoginUserDto = req.body;
+
+    try {
+      const result = await this.authService.login(loginUserDto);
+      return res.json(result);
+    } catch (error) {
+      return next(error);
+    }
+  };
 }
 
 export default AuthController;
-
-// import { Request, Response, NextFunction } from 'express';
-// import bcrypt from 'bcryptjs';
-
-// import User from '../models/user.model';
-// import authService from '../services/auth.service';
-// import logger from '../config/logger';
-
-// export const register = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   const { username, password, email } = req.body;
-
-//   return res.json({
-//     id: savedUser._id,
-//     username: savedUser.username,
-//     email: savedUser.email,
-//   });
-// };
-
-// export const login = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction,
-// ) => {
-//   try {
-//     const { username, password } = req.body;
-
-//     const user = await User.findOne({ username });
-
-//     if (!user) {
-//       const error = new Error('User not found');
-//       (error as any).statusCode = 404;
-//       throw error;
-//     }
-
-//     const passwordCheckResult = await bcrypt.compare(password, user.password);
-
-//     if (!passwordCheckResult) {
-//       const error = new Error(
-//         'This username/password combination does not exist',
-//       );
-//       (error as any).statusCode = 401;
-//       throw error;
-//     }
-
-//     const token = authService.generateToken(user);
-
-//     user.jwtToken = token;
-//     user.save();
-
-//     return res.json({
-//       jwtToken: user.jwtToken,
-//       user: { id: user._id, username: user.username, email: user.email },
-//     });
-//   } catch (err) {
-//     logger.log('error', err);
-//     next(err);
-//     throw err;
-//   }
-// };

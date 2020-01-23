@@ -7,9 +7,10 @@ import RegisterUserDto from '../dtos/user/registerUser.dto';
 import LoginUserDto from '../dtos/user/loginUser.dto';
 import NotFoundException from '../exceptions/notFound.exception';
 import BadCredentialsException from '../exceptions/badCredentials.exception';
+import { InternalServerError } from '../exceptions';
 
 export interface AuthServiceInterface {
-  register(registerUserDto: RegisterUserDto): Promise<UserInterface | null>;
+  register(registerUserDto: RegisterUserDto): Promise<UserInterface>;
   login(loginUserDto: LoginUserDto): Promise<UserInterface>;
 }
 
@@ -19,7 +20,7 @@ export default class AuthService implements AuthServiceInterface {
    */
   public async register(
     registerUserDto: RegisterUserDto,
-  ): Promise<UserInterface | null> {
+  ): Promise<UserInterface> {
     const hashedPassword = await this.hashPassword(registerUserDto.password);
     const user = new User({
       username: registerUserDto.username,
@@ -28,7 +29,13 @@ export default class AuthService implements AuthServiceInterface {
     });
     await user.save();
 
-    return await User.findById(user.id).select('_id email username');
+    const found = await User.findById(user.id).select('_id email username');
+
+    if (!found) {
+      throw new InternalServerError();
+    }
+
+    return found;
   }
 
   /**
@@ -52,7 +59,17 @@ export default class AuthService implements AuthServiceInterface {
 
     const token = this.generateToken(user);
     user.jwtToken = token;
-    return await user.save();
+    await user.save();
+
+    const found = await User.findById(user.id).select(
+      '_id email username jwtToken followers followed',
+    );
+
+    if (!found) {
+      throw new InternalServerError();
+    }
+
+    return found;
   }
 
   public generateToken(user: UserInterface): string {
