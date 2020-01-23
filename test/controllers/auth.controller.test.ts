@@ -1,3 +1,104 @@
+import express, { Application } from 'express';
+import chai, { expect } from 'chai';
+import chaiHttp from 'chai-http';
+import Sinon from 'sinon';
+
+import * as middlewares from '../../src/middlewares';
+import { RequestWithUser } from '../../src/interfaces';
+import App from '../../src/app';
+import AuthController from '../../src/controllers/auth.controller';
+import AuthService from '../../src/services/auth.service';
+import User from '../../src/models/user.model';
+
+let app: Application;
+let authenticateStub: Sinon.SinonStub<
+  [express.Request, express.Response, express.NextFunction],
+  Promise<void>
+>;
+
+chai.use(chaiHttp);
+const authService = new AuthService();
+
+describe('Auth controller', () => {
+  before(() => {
+    authenticateStub = Sinon.stub(middlewares, 'isAuthenticated').callsFake(
+      async (
+        req: express.Request,
+        _res: express.Response,
+        next: express.NextFunction,
+      ): Promise<void> => {
+        (req as RequestWithUser).user = new User({
+          username: 'admin',
+          email: 'admin@admin.com',
+        });
+        next();
+      },
+    );
+    app = new App([new AuthController(authService)]).app;
+  });
+
+  after(() => {
+    authenticateStub.restore();
+  });
+
+  describe('POST api/auth/register', () => {
+    it('should register the user successfully', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/auth/register')
+        .send({
+          username: 'test',
+          email: 'test@test.com',
+          password: 'password',
+        });
+      expect(response.status).to.be.equal(200);
+      expect(response.body).to.deep.include({
+        username: 'test',
+        email: 'test@test.com',
+      });
+    });
+
+    it('should throw validation errors', async () => {
+      const user = new User({
+        username: 'test',
+        email: 'test1@test.com',
+        password: 'passsword',
+      });
+      await user.save();
+
+      const response = await chai
+        .request(app)
+        .post('/api/auth/register')
+        .send({
+          username: 'test',
+          email: 'test',
+          password: 'password!',
+        });
+
+      expect(response.status).to.be.equal(422);
+      expect(response.body.errors.length).to.be.equal(3);
+      expect(response.body.errors[0]).to.deep.include({
+        value: 'test',
+        msg: 'This username is already taken',
+        param: 'username',
+        location: 'body',
+      });
+      expect(response.body.errors[1]).to.deep.include({
+        value: 'test',
+        msg: 'You should pass a valid email',
+        param: 'email',
+        location: 'body',
+      });
+      expect(response.body.errors[2]).to.deep.include({
+        value: 'password!',
+        msg: 'The password should have only alphanumerical characters',
+        param: 'password',
+        location: 'body',
+      });
+    });
+  });
+});
+
 // const { expect } = require('chai');
 // const sinon = require('sinon');
 // const bcrypt = require('bcryptjs');

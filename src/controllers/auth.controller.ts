@@ -21,6 +21,7 @@ class AuthController implements Controller {
         .trim()
         .isAlphanumeric()
         .isLength({ min: 3, max: 32 })
+        .withMessage('The username should have at least 3 characters')
         .custom(async (value) => {
           if (await User.findOne({ username: value })) {
             throw new Error('This username is already taken');
@@ -32,6 +33,7 @@ class AuthController implements Controller {
         }),
       body('email')
         .isEmail()
+        .withMessage('You should pass a valid email')
         .normalizeEmail()
         .custom(async (value) => {
           if (await User.findOne({ email: value })) {
@@ -42,7 +44,9 @@ class AuthController implements Controller {
       body('password')
         .trim()
         .isLength({ min: 6 })
-        .isAlphanumeric(),
+        .withMessage('The password should have at least 6 characters')
+        .isAlphanumeric()
+        .withMessage('The password should have only alphanumerical characters'),
       handleValidation,
       this.register,
     );

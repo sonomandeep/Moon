@@ -9,7 +9,7 @@ import NotFoundException from '../exceptions/notFound.exception';
 import BadCredentialsException from '../exceptions/badCredentials.exception';
 
 export interface AuthServiceInterface {
-  register(registerUserDto: RegisterUserDto): Promise<UserInterface>;
+  register(registerUserDto: RegisterUserDto): Promise<UserInterface | null>;
   login(loginUserDto: LoginUserDto): Promise<UserInterface>;
 }
 
@@ -19,14 +19,16 @@ export default class AuthService implements AuthServiceInterface {
    */
   public async register(
     registerUserDto: RegisterUserDto,
-  ): Promise<UserInterface> {
+  ): Promise<UserInterface | null> {
     const hashedPassword = await this.hashPassword(registerUserDto.password);
     const user = new User({
       username: registerUserDto.username,
       password: hashedPassword,
       email: registerUserDto.email,
     });
-    return await user.save();
+    await user.save();
+
+    return await User.findById(user.id).select('_id email username');
   }
 
   /**
@@ -37,6 +39,7 @@ export default class AuthService implements AuthServiceInterface {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     const passwordCheckResult = await bcrypt.compare(
       loginUserDto.password,
       user.password,
@@ -46,12 +49,13 @@ export default class AuthService implements AuthServiceInterface {
         'A user with this username/password combination does not exist',
       );
     }
+
     const token = this.generateToken(user);
     user.jwtToken = token;
     return await user.save();
   }
 
-  private generateToken(user: UserInterface): string {
+  public generateToken(user: UserInterface): string {
     return jwt.sign({ id: user._id }, process.env.JWT_SECRET as string, {
       expiresIn: '10h',
     });
