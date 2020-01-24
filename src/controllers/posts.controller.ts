@@ -9,6 +9,11 @@ import { PostServiceInterface } from '../services/post.service';
 import { isAuthenticated, paginate } from '../middlewares';
 import { CreatePostDto, UpdatePostDto } from '../dtos/post';
 import { BadRequestException } from '../exceptions';
+import { authAndIdValidator } from '../validation/index.validation';
+import {
+  authAndPostCreationValidator,
+  authAndPostUpdateValidator,
+} from '../validation/posts.validation';
 
 class PostsController implements Controller {
   private path = '/posts';
@@ -20,10 +25,22 @@ class PostsController implements Controller {
 
   private initializeRoutes(): void {
     this.router.get(`${this.path}`, isAuthenticated, paginate, this.getPosts);
-    this.router.get(`${this.path}/:id`, isAuthenticated, this.getPostById);
-    this.router.post(`${this.path}`, isAuthenticated, this.createPost);
-    this.router.patch(`${this.path}/:id`, isAuthenticated, this.updatePost);
-    this.router.delete(`${this.path}/:id`, isAuthenticated, this.deletePost);
+    this.router.get(`${this.path}/:id`, authAndIdValidator(), this.getPostById);
+    this.router.post(
+      `${this.path}`,
+      authAndPostCreationValidator(),
+      this.createPost,
+    );
+    this.router.patch(
+      `${this.path}/:id`,
+      authAndPostUpdateValidator(),
+      this.updatePost,
+    );
+    this.router.delete(
+      `${this.path}/:id`,
+      authAndIdValidator(),
+      this.deletePost,
+    );
   }
 
   private getPosts = async (
@@ -102,12 +119,9 @@ class PostsController implements Controller {
     const user = (req as RequestWithUser).user;
 
     try {
-      const result = await this.postService.deletePost(user._id, postId);
-      if (!result) {
-        throw new BadRequestException();
-      }
+      await this.postService.deletePost(user._id, postId);
 
-      return res.status(204).json(result);
+      return res.status(204).json();
     } catch (error) {
       return next(error);
     }

@@ -21,7 +21,7 @@ describe('Post service', () => {
         await post.save();
       }
 
-      const posts = await postService.getPosts(user._id, { skip: 1, limit: 2 });
+      const posts = await postService.getPosts({ skip: 1, limit: 2 });
 
       expect(posts.length).to.be.equal(2);
       expect(posts[0]).to.deep.include({
@@ -60,9 +60,8 @@ describe('Post service', () => {
 
   describe('Create post', () => {
     it('should create the post passing the right data', async () => {
-      const result = await postService.createPost({
+      const result = await postService.createPost('5e29e867d1e46ae137e5fdf9', {
         description: 'Post',
-        user: '5e29e867d1e46ae137e5fdf9',
       });
 
       expect(result.user.toHexString()).to.be.equal('5e29e867d1e46ae137e5fdf9');
@@ -78,21 +77,32 @@ describe('Post service', () => {
       });
       await post.save();
 
-      const result = await postService.updatePost(post._id, {
-        description: 'Modified',
-      });
+      const result = await postService.updatePost(
+        '5e29e867d1e46ae137e5fdf9',
+        post._id,
+        {
+          description: 'Modified',
+        },
+      );
       if (!result) throw new Error();
 
       expect(result.description).to.be.equal('Modified');
       expect(result._id.toHexString()).to.be.equal(post._id.toHexString());
     });
 
-    it('should update the post successfully', async () => {
-      const result = await postService.updatePost('5e29e867d1e46ae137e5fdf9', {
-        description: 'Modified',
-      });
-
-      expect(result).to.be.null;
+    it('should not find and throw post not found exception', async () => {
+      try {
+        await postService.updatePost(
+          '5e29e867d1e46ae137e5fdf9',
+          '5e29e867d1e46ae137e5fdf0',
+          {
+            description: 'Modified',
+          },
+        );
+      } catch (error) {
+        expect(error.status).to.be.equal(404);
+        expect(error.message).to.be.equal('Post not found');
+      }
     });
   });
 
@@ -104,13 +114,23 @@ describe('Post service', () => {
       });
       await post.save();
 
-      const result = await postService.deletePost(post._id);
+      const result = await postService.deletePost(
+        '5e29e867d1e46ae137e5fdf9',
+        post._id,
+      );
       expect(result).to.be.true;
     });
 
     it('should not find the post and return false', async () => {
-      const result = await postService.deletePost('5e29e867d1e46ae137e5fdf9');
-      expect(result).to.be.false;
+      try {
+        await postService.deletePost(
+          '5e29e867d1e46ae137e5fdf9',
+          '5e29e867d1e46ae137e5fdf9',
+        );
+      } catch (error) {
+        expect(error.status).to.be.equal(404);
+        expect(error.message).to.be.equal('Post not found');
+      }
     });
   });
 });

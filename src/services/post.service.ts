@@ -1,9 +1,12 @@
 import Post, { PostInterface } from '../models/post.model';
 import { CreatePostDto, UpdatePostDto } from '../dtos/post';
 import { PaginationOptions } from '../interfaces';
-import InternalServerError from '../exceptions/internalServerError.exception';
-import NotFoundException from '../exceptions/notFound.exception';
-import UnauthorizedException from '../exceptions/unauthorized.exception';
+import {
+  BadRequestException,
+  NotFoundException,
+  InternalServerError,
+  UnauthorizedException,
+} from '../exceptions';
 
 export interface PostServiceInterface {
   getPosts(options: PaginationOptions): Promise<PostInterface[]>;
@@ -88,6 +91,10 @@ class PostService implements PostServiceInterface {
     }
 
     const result = await Post.findByIdAndDelete(postId);
+    if (!result) {
+      throw new BadRequestException();
+    }
+
     return !!result;
   }
 }
