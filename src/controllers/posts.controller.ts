@@ -8,7 +8,6 @@ import {
 import { PostServiceInterface } from '../services/post.service';
 import { isAuthenticated, paginate } from '../middlewares';
 import { CreatePostDto, UpdatePostDto } from '../dtos/post';
-import { BadRequestException } from '../exceptions';
 import { authAndIdValidator } from '../validation/index.validation';
 import {
   authAndPostCreationValidator,
@@ -40,6 +39,11 @@ class PostsController implements Controller {
       `${this.path}/:id`,
       authAndIdValidator(),
       this.deletePost,
+    );
+    this.router.post(
+      `${this.path}/like/:id`,
+      authAndIdValidator(),
+      this.likePost,
     );
   }
 
@@ -120,6 +124,23 @@ class PostsController implements Controller {
 
     try {
       await this.postService.deletePost(user._id, postId);
+
+      return res.status(204).json();
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  private likePost = async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ): Promise<express.Response | void> => {
+    const postId = req.params.id;
+    const user = (req as RequestWithUser).user;
+
+    try {
+      await this.postService.likePost(user._id, postId);
 
       return res.status(204).json();
     } catch (error) {

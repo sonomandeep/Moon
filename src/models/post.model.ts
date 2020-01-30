@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 export interface PostInterface extends mongoose.Document {
   description: string;
   user: mongoose.Types.ObjectId;
+  likes: mongoose.Types.ObjectId[];
 }
 
 const postSchema = new mongoose.Schema(
@@ -16,6 +17,12 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: 'User',
     },
+    likes: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   { timestamps: true },
 );
