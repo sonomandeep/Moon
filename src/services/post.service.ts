@@ -1,6 +1,7 @@
 import Post, { PostInterface } from '../models/post.model';
 import { CreatePostDto, UpdatePostDto } from '../dtos/post';
 import { PaginationOptions } from '../interfaces';
+import mongoose from 'mongoose';
 import {
   BadRequestException,
   NotFoundException,
@@ -21,19 +22,20 @@ export interface PostServiceInterface {
     updatePostDto: UpdatePostDto,
   ): Promise<PostInterface | null>;
   deletePost(userId: string, postId: string): Promise<boolean>;
+  likePost(userId: string, postId: string): Promise<void>;
 }
 
 class PostService implements PostServiceInterface {
   public async getPosts(options: PaginationOptions): Promise<PostInterface[]> {
-    return Post.find(
-      {},
-      {},
-      { skip: options.skip, limit: options.limit },
-    ).select('_id description user');
+    return Post.find({}, {}, { skip: options.skip, limit: options.limit })
+      .select('_id description user likes')
+      .populate('likes', '_id username');
   }
 
   public async getPostById(postId: string): Promise<PostInterface> {
-    const post = await Post.findById(postId).select('_id description user');
+    const post = await Post.findById(postId).select(
+      '_id description user likes',
+    );
     if (!post) {
       throw new NotFoundException('Post not found');
     }
@@ -96,6 +98,21 @@ class PostService implements PostServiceInterface {
     }
 
     return !!result;
+  }
+
+  public async likePost(userId: string, postId: string): Promise<void> {
+    const post = await Post.findById(postId);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    post.likes.push(mongoose.Types.ObjectId(userId));
+
+    try {
+      await post.save();
+    } catch (error) {
+      throw new InternalServerError();
+    }
   }
 }
 
