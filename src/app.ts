@@ -34,7 +34,7 @@ export default class App {
 
   private initializeMiddlewares(): void {
     this.app.use(express.json());
-    // this.app.use(morgan('dev'));
+    this.app.use(morgan('dev'));
   }
 
   private initializeControllers(controllers: Controller[]): void {
