@@ -26,10 +26,14 @@ export default class App {
   }
 
   private async connectToTheDatabase(): Promise<void> {
-    await mongoose.connect(config.MONGO, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    try {
+      await mongoose.connect(config.MONGO, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   private initializeMiddlewares(): void {
