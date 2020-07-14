@@ -6,7 +6,7 @@
   "scripts": {
     "test": "nyc mocha --recursive --exit --timeout 60s -r ts-node/register test/**/*.ts",
     "dev": "tsc -w",
-    "start": "nodemon dist/server.js",
+    "start": "node dist/server.js",
     "build": "tsc"
   },
   "repository": {
