@@ -59,6 +59,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Mandeep Singh - smandeep2001@gmail.com
+Mandeep Singh - sonomandeep@gmail.com
 
 Project Link: [https://github.com/Mandeep2001/Moon](https://github.com/mandeep2001/moon)
